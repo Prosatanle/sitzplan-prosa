@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sitzplan – Architekturbüro</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f5f3;color:#1a1a1a;font-size:13px}
+.app{display:flex;flex-direction:column;height:100vh;overflow:hidden}
+
+/* TOP TABS */
+.top-tabs{display:flex;background:#fff;border-bottom:1px solid #e5e5e3;padding:0 16px;flex-shrink:0}
+.top-tab{padding:11px 16px;font-size:12px;font-weight:500;cursor:pointer;color:#888;border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap;transition:color 0.15s}
+.top-tab:hover{color:#1a1a1a}
+.top-tab.active{color:#C9960C;border-bottom-color:#C9960C}
+
+/* LOADING */
+.loading{display:flex;align-items:center;justify-content:center;flex:1;gap:10px;color:#888}
+.spinner{width:18px;height:18px;border:2px solid #e5e5e3;border-top-color:#C9960C;border-radius:50%;animation:spin 0.7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* TAB CONTENT */
+.tab-content{display:none;flex:1;overflow:hidden}
+.tab-content.active{display:flex;flex:1;overflow:hidden}
+
+/* SIDEBAR */
+.sidebar{width:210px;min-width:210px;background:#fff;border-right:1px solid #e5e5e3;display:flex;flex-direction:column;transition:width 0.18s,min-width 0.18s;overflow:hidden;flex-shrink:0}
+.sidebar.collapsed{width:36px;min-width:36px}
+.sb-toggle{display:flex;align-items:center;justify-content:space-between;padding:10px;border-bottom:1px solid #e5e5e3;cursor:pointer;user-select:none;min-height:40px}
+.sb-toggle-title{font-size:11px;font-weight:500;white-space:nowrap}
+.sb-icon{font-size:13px;color:#888;flex-shrink:0}
+.sidebar.collapsed .sb-toggle-title,.sidebar.collapsed .sb-body{display:none}
+.sb-body{flex:1;overflow-y:auto;padding:8px}
+.sb-sec{margin-bottom:10px}
+.sb-sec-head{display:flex;align-items:center;justify-content:space-between;padding:3px 2px;cursor:pointer;user-select:none}
+.sb-sec-lbl{font-size:9px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:0.08em}
+.sb-chev{font-size:10px;color:#aaa;transition:transform 0.15s}
+.sb-chev.open{transform:rotate(90deg)}
+.sb-items{display:flex;flex-direction:column;gap:3px;margin-top:3px}
+.sb-card{background:#f5f5f3;border:1px solid #e5e5e3;border-radius:6px;padding:5px 7px;cursor:grab;user-select:none;font-size:10px}
+.sb-card:active{cursor:grabbing;opacity:0.6}
+.sb-card.dragging{opacity:0.4}
+.sb-card-name{font-weight:600;color:#1a1a1a}
+.sb-card-sub{color:#888;font-size:9px;margin-top:1px}
+.add-sb-btn{width:100%;padding:4px;font-size:9px;border:1px dashed #ccc;border-radius:6px;cursor:pointer;color:#888;background:transparent;margin-top:3px;text-align:center}
+.add-sb-btn:hover{border-color:#C9960C;color:#C9960C}
+
+/* MAIN FLOOR */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+.topbar{display:flex;align-items:center;gap:6px;padding:9px 12px;border-bottom:1px solid #e5e5e3;background:#fff;flex-wrap:wrap;flex-shrink:0}
+.day-btn{padding:4px 9px;font-size:11px;cursor:pointer;border:1px solid #ddd;border-radius:6px;background:#fff;color:#444;transition:all 0.12s}
+.day-btn.active{background:#C9960C;color:#fff;border-color:#C9960C}
+.auto-btn{margin-left:auto;padding:5px 11px;font-size:11px;border-radius:6px;border:1px solid #639922;color:#27500A;background:#EAF3DE;cursor:pointer;font-weight:500}
+.auto-btn:hover{background:#C0DD97}
+.floor-area{flex:1;overflow-y:auto;padding:12px}
+.floor-label{font-size:16px;font-weight:600;color:#C9960C;margin-bottom:10px}
+.tischgruppen{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:18px}
+.tischgruppe{display:flex;flex-direction:column}
+.tg-label{font-size:9px;font-weight:600;color:#4A8BC4;margin-bottom:5px;text-transform:uppercase;letter-spacing:0.05em}
+.tisch-row{display:flex}
+.platz{width:82px;height:64px;border:1px solid #ddd;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;position:relative;text-align:center;padding:4px 3px;transition:background 0.1s;gap:1px}
+.platz:hover{background:#fafaf8}
+.platz.over{border:2px solid #C9960C;background:#FAEEDA}
+.platz.fest{background:#EAF3DE}
+.platz.gebucht{background:#E6F1FB}
+.platz.gesperrt{background:#f5f5f3;cursor:pointer}
+.platz-num{font-size:8px;color:#bbb;font-weight:600;position:absolute;top:3px;left:5px}
+.platz-name{font-size:11px;font-weight:600;color:#1a1a1a;line-height:1.2}
+.platz-icons{display:flex;align-items:center;gap:2px;margin-top:2px}
+.proj-dots{display:flex;gap:2px;position:absolute;top:3px;right:4px}
+.proj-dot{width:6px;height:6px;border-radius:50%}
+.legend{display:flex;gap:10px;padding:6px 12px;border-top:1px solid #e5e5e3;background:#fff;flex-wrap:wrap;flex-shrink:0}
+.leg-item{display:flex;align-items:center;gap:3px;font-size:9px;color:#888}
+.leg-dot{width:9px;height:9px;border-radius:2px;border:1px solid #e5e5e3}
+
+/* LIST PANE */
+.list-pane{flex:1;display:flex;flex-direction:column;overflow:hidden;padding:14px}
+.list-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.list-title{font-size:15px;font-weight:600}
+.add-btn{padding:6px 12px;font-size:11px;border-radius:6px;border:1px solid #C9960C;color:#C9960C;background:transparent;cursor:pointer;font-weight:500}
+.add-btn:hover{background:#FAEEDA}
+.tbl-wrap{flex:1;overflow-y:auto;border:1px solid #e5e5e3;border-radius:8px;background:#fff}
+table{width:100%;border-collapse:collapse;font-size:11px}
+th{text-align:left;padding:8px 10px;font-size:10px;font-weight:600;color:#888;border-bottom:1px solid #e5e5e3;position:sticky;top:0;background:#fff;z-index:1}
+td{padding:7px 10px;border-bottom:1px solid #f0f0ee;color:#1a1a1a;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#fafaf8}
+.edit-btn{padding:3px 8px;font-size:10px;border-radius:5px;border:1px solid #ddd;cursor:pointer;background:transparent;color:#666}
+.edit-btn:hover{border-color:#C9960C;color:#C9960C}
+.del-btn{padding:3px 8px;font-size:10px;border-radius:5px;border:1px solid #eee;cursor:pointer;background:transparent;color:#bbb}
+.del-btn:hover{border-color:#D85A30;color:#712B13}
+.badge{display:inline-block;padding:2px 7px;border-radius:10px;font-size:9px;font-weight:600}
+.b-fest{background:#EAF3DE;color:#27500A}
+.b-flex{background:#E6F1FB;color:#0C447C}
+.b-geteilt{background:#FAEEDA;color:#633806}
+.b-mobil{background:#f5f5f3;color:#888}
+.proj-pills{display:flex;flex-wrap:wrap;gap:3px}
+.proj-pill{display:inline-flex;align-items:center;gap:3px;padding:2px 6px;border-radius:8px;font-size:9px;font-weight:600}
+.color-dot{width:8px;height:8px;border-radius:50%;display:inline-block;flex-shrink:0}
+
+/* MODAL */
+.modal-wrap{position:fixed;inset:0;background:rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;z-index:200}
+.modal{background:#fff;border:1px solid #e5e5e3;border-radius:12px;padding:1.25rem;width:320px;max-width:92vw;max-height:88vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,0.12)}
+.modal-title{font-size:14px;font-weight:600;margin-bottom:14px}
+.mrow{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #f0f0ee;font-size:11px;align-items:center}
+.mrow:last-of-type{border:none}
+.mlabel{color:#888;flex-shrink:0}
+.mval{font-weight:500;display:flex;align-items:center;gap:4px;flex-wrap:wrap;justify-content:flex-end}
+.notiz-box{border-radius:6px;padding:7px 9px;font-size:10px;margin-top:7px}
+.notiz-t{font-weight:600;margin-bottom:2px}
+.mbtn{padding:6px 11px;font-size:11px;border-radius:6px;border:1px solid #ddd;cursor:pointer;background:#f5f5f3;color:#1a1a1a;margin-right:5px;margin-top:10px;font-weight:500}
+.mbtn.grn{border-color:#639922;color:#27500A;background:#EAF3DE}
+.mbtn.red{border-color:#D85A30;color:#712B13;background:#FAECE7}
+.form-row{display:flex;flex-direction:column;gap:3px;margin-bottom:10px}
+.form-row label{font-size:10px;color:#888;font-weight:500}
+.form-row input,.form-row select,.form-row textarea{font-size:11px;padding:6px 8px;border:1px solid #ddd;border-radius:6px;background:#fff;color:#1a1a1a;width:100%;outline:none}
+.form-row input:focus,.form-row select:focus{border-color:#C9960C}
+.proj-checks{display:flex;flex-direction:column;gap:5px;max-height:110px;overflow-y:auto;border:1px solid #ddd;border-radius:6px;padding:7px 9px}
+.proj-checks label{font-size:11px;display:flex;align-items:center;gap:6px;cursor:pointer}
+.proj-checks input[type=checkbox]{width:13px;height:13px;cursor:pointer;flex-shrink:0;accent-color:#C9960C}
+.day-checks{display:flex;gap:6px;flex-wrap:wrap}
+.day-checks label{font-size:10px;display:flex;align-items:center;gap:2px;cursor:pointer}
+.day-checks input{accent-color:#C9960C}
+
+/* TOAST */
+.toast{position:fixed;bottom:16px;right:16px;background:#27500A;color:#EAF3DE;font-size:11px;font-weight:500;padding:8px 14px;border-radius:8px;z-index:300;opacity:0;transition:opacity 0.2s;pointer-events:none}
+.toast.show{opacity:1}
+.toast.err{background:#712B13}
+</style>
+</head>
+<body>
+
+<div class="app" id="app">
+  <div class="top-tabs">
+    <div class="top-tab active" onclick="showTopTab('sitzplan',this)">Sitzplan</div>
+    <div class="top-tab" onclick="showTopTab('mitarbeitende',this)">Mitarbeitende</div>
+    <div class="top-tab" onclick="showTopTab('geraete',this)">Geräte</div>
+    <div class="top-tab" onclick="showTopTab('projekte',this)">Projekte</div>
+  </div>
+
+  <div id="tab-sitzplan" class="tab-content active">
+    <div class="sidebar" id="sidebar">
+      <div class="sb-toggle" onclick="toggleSidebar()">
+        <span class="sb-toggle-title">Übersicht</span>
+        <span class="sb-icon" id="sb-icon">‹</span>
+      </div>
+      <div class="sb-body">
+        <div class="sb-sec">
+          <div class="sb-sec-head" onclick="toggleSec('sma')"><span class="sb-sec-lbl">Personen</span><span class="sb-chev open" id="chev-sma">›</span></div>
+          <div class="sb-items" id="sma"></div>
+          <button class="add-sb-btn" onclick="openAddPerson()">+ Person</button>
+        </div>
+        <div class="sb-sec">
+          <div class="sb-sec-head" onclick="toggleSec('sdev')"><span class="sb-sec-lbl">Geräte</span><span class="sb-chev open" id="chev-sdev">›</span></div>
+          <div class="sb-items" id="sdev"></div>
+          <button class="add-sb-btn" onclick="openAddGeraet()">+ Gerät</button>
+        </div>
+      </div>
+    </div>
+    <div class="main">
+      <div class="topbar">
+        <span style="font-size:10px;color:#888">Tag:</span>
+        <button class="day-btn active" onclick="setDay('Mo',this)">Mo</button>
+        <button class="day-btn" onclick="setDay('Di',this)">Di</button>
+        <button class="day-btn" onclick="setDay('Mi',this)">Mi</button>
+        <button class="day-btn" onclick="setDay('Do',this)">Do</button>
+        <button class="day-btn" onclick="setDay('Fr',this)">Fr</button>
+        <button class="auto-btn" onclick="autoAssign()">⚡ Auto-Zuweisung</button>
+      </div>
+      <div class="floor-area" id="floor-area">
+        <div class="loading"><div class="spinner"></div> Daten werden geladen…</div>
+      </div>
+      <div class="legend">
+        <div class="leg-item"><div class="leg-dot" style="background:#EAF3DE"></div>Fester Platz</div>
+        <div class="leg-item"><div class="leg-dot" style="background:#E6F1FB"></div>Gebucht</div>
+        <div class="leg-item"><div class="leg-dot" style="background:#fff;border:1px solid #ddd"></div>Frei</div>
+        <div class="leg-item"><div class="leg-dot" style="background:#f5f5f3"></div>Gesperrt</div>
+        <div class="leg-item" style="gap:4px">${iMacSVG(10)} iMac</div>
+        <div class="leg-item" style="gap:4px">${mbSVG(10)} MacBook</div>
+        <div class="leg-item" style="gap:4px">${scSVG(10)} Bildschirm</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="tab-mitarbeitende" class="tab-content">
+    <div class="list-pane">
+      <div class="list-header"><span class="list-title">Mitarbeitende</span><button class="add-btn" onclick="openAddPerson()">+ Person hinzufügen</button></div>
+      <div class="tbl-wrap"><table><thead><tr><th>Name</th><th>Typ</th><th>Platz</th><th>Gerät</th><th>Tage</th><th>Projekte</th><th>Einschränkung</th><th></th></tr></thead><tbody id="ma-tbody"><tr><td colspan="8" style="text-align:center;padding:20px;color:#aaa">Wird geladen…</td></tr></tbody></table></div>
+    </div>
+  </div>
+
+  <div id="tab-geraete" class="tab-content">
+    <div class="list-pane">
+      <div class="list-header"><span class="list-title">Geräte</span><button class="add-btn" onclick="openAddGeraet()">+ Gerät hinzufügen</button></div>
+      <div class="tbl-wrap"><table><thead><tr><th>Gerät</th><th>Typ</th><th>Platz</th><th>Nutzungsart</th><th>Nutzer</th><th></th></tr></thead><tbody id="dev-tbody"><tr><td colspan="6" style="text-align:center;padding:20px;color:#aaa">Wird geladen…</td></tr></tbody></table></div>
+    </div>
+  </div>
+
+  <div id="tab-projekte" class="tab-content">
+    <div class="list-pane">
+      <div class="list-header"><span class="list-title">Projekte</span><button class="add-btn" onclick="openAddProjekt()">+ Projekt hinzufügen</button></div>
+      <div class="tbl-wrap"><table><thead><tr><th>Farbe</th><th>Projektname</th><th>Mitarbeitende</th><th>Beschreibung</th><th></th></tr></thead><tbody id="proj-tbody"><tr><td colspan="5" style="text-align:center;padding:20px;color:#aaa">Wird geladen…</td></tr></tbody></table></div>
+    </div>
+  </div>
+</div>
+
+<div id="modal-c"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+// ── SUPABASE CONFIG ──────────────────────────────────────────
+const SUPA_URL = 'https://gepvyopwxclixwrfswjd.supabase.co';
+const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdlcHZ5b3B3eGNsaXh3cmZzd2pkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc0NTc3NjYsImV4cCI6MjA5MzAzMzc2Nn0.sAeVdcGH0MZdpoVMXygH9XeNRwmWkMLUO4Yhmux9BTM';
+const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
+
+// ── SVG ICONS ────────────────────────────────────────────────
+function iMacSVG(s){s=s||13;return `<svg width="${s}" height="${s}" viewBox="0 0 16 16" style="flex-shrink:0"><rect x="1" y="2" width="14" height="10" rx="1.5" fill="none" stroke="#555" stroke-width="1.5"/><rect x="6" y="12" width="4" height="2" rx="0.5" fill="#555"/><rect x="4" y="14" width="8" height="1" rx="0.5" fill="#555"/></svg>`;}
+function mbSVG(s){s=s||13;return `<svg width="${s}" height="${s}" viewBox="0 0 16 16" style="flex-shrink:0"><rect x="2" y="2" width="12" height="9" rx="1" fill="none" stroke="#555" stroke-width="1.5"/><rect x="1" y="11" width="14" height="2" rx="1" fill="#555"/></svg>`;}
+function scSVG(s){s=s||13;return `<svg width="${s}" height="${s}" viewBox="0 0 16 16" style="flex-shrink:0"><rect x="2" y="1" width="12" height="9" rx="1" fill="none" stroke="#555" stroke-width="1.5"/><rect x="6" y="10" width="4" height="2" rx="0.5" fill="#555"/><rect x="4" y="12" width="8" height="1" rx="0.5" fill="#555"/></svg>`;}
+function devIcon(typ,s){return typ==='iMac'?iMacSVG(s):typ==='MacBook'?mbSVG(s):scSVG(s);}
+
+// ── STATE ────────────────────────────────────────────────────
+let currentDay='Mo', sidebarOpen=true, dragData=null;
+let mitarbeitende=[], geraete=[], projekte=[], sperren=new Set(), buchungen={Mo:{},Di:{},Mi:{},Do:{},Fr:{}};
+const projFarben=['#639922','#185FA5','#D85A30','#C9960C','#993556','#0F6E56','#534AB7'];
+
+const GRUPPEN=[
+  {label:'Tischgruppe 1',plaetze:[[1,2],[3,4]],bereich:'oben'},
+  {label:'Tischgruppe 2',plaetze:[[5,6],[7,8]],bereich:'oben'},
+  {label:'Tischgruppe 3',plaetze:[[9,10],[11,12]],bereich:'oben'},
+  {label:'Tischgruppe 4',plaetze:[[13,14],[15,16]],bereich:'unten'},
+  {label:'Tischgruppe 5',plaetze:[[17,18],[19,20]],bereich:'unten'},
+  {label:'Tischgruppe 6',plaetze:[[21,22],[23,24]],bereich:'unten'},
+];
+
+// ── LOAD FROM SUPABASE ───────────────────────────────────────
+async function loadAll(){
+  try {
+    const [pRes, gRes, mRes, sRes, bRes] = await Promise.all([
+      sb.from('projekte').select('*'),
+      sb.from('geraete').select('*'),
+      sb.from('mitarbeitende').select('*'),
+      sb.from('sperren').select('*'),
+      sb.from('buchungen').select('*'),
+    ]);
+    projekte = pRes.data || [];
+    geraete = gRes.data || [];
+    mitarbeitende = mRes.data || [];
+    sperren = new Set((sRes.data||[]).map(s=>s.platz));
+    buchungen = {Mo:{},Di:{},Mi:{},Do:{},Fr:{}};
+    (bRes.data||[]).forEach(b=>{
+      const ma=mitarbeitende.find(m=>m.id===b.mitarbeiter_id);
+      if(ma) buchungen[b.tag][b.platz]={...ma,quelle:'gebucht'};
+    });
+    renderAll();
+  } catch(e){
+    showToast('Fehler beim Laden: '+e.message, true);
+  }
+}
+
+// ── HELPERS ──────────────────────────────────────────────────
+function getPersonAmPlatz(nr){
+  const fest=mitarbeitende.find(m=>m.platz===nr&&m.typ==='fest'&&(m.tage||[]).includes(currentDay));
+  if(fest)return{...fest,quelle:'fest'};
+  return buchungen[currentDay][nr]||null;
+}
+function getGeraetAmPlatz(nr){return geraete.find(g=>g.platz===nr)||null;}
+function getMaProjekte(ma){return(ma.projekte||[]).map(id=>projekte.find(p=>p.id===id)).filter(Boolean);}
+function getNutzerVonGeraet(gId){const ms=mitarbeitende.filter(m=>m.geraet===gId);return ms.length?ms.map(m=>m.name).join(', '):'–';}
+
+function projPillsHTML(ids){
+  return(ids||[]).map(id=>{const p=projekte.find(p=>p.id===id);if(!p)return'';return`<span class="proj-pill" style="background:${p.farbe}22;border:1px solid ${p.farbe}55;color:${p.farbe}"><span class="color-dot" style="background:${p.farbe}"></span>${p.name}</span>`;}).join('');
+}
+function projDotsHTML(ids){
+  return(ids||[]).slice(0,3).map(id=>{const p=projekte.find(p=>p.id===id);return p?`<div class="proj-dot" style="background:${p.farbe}"></div>`:''}).join('');
+}
+function projCheckboxes(selected){
+  return`<div class="proj-checks">${projekte.map(p=>`<label><input type="checkbox" class="pj-cb" value="${p.id}" ${(selected||[]).includes(p.id)?'checked':''}><span class="color-dot" style="background:${p.farbe}"></span>${p.name}</label>`).join('')}</div>`;
+}
+function getCheckedProjekte(){return Array.from(document.querySelectorAll('.pj-cb:checked')).map(i=>i.value);}
+
+// ── RENDER ───────────────────────────────────────────────────
+function renderSidebar(){
+  const maEl=document.getElementById('sma');if(!maEl)return;
+  maEl.innerHTML='';
+  mitarbeitende.forEach(m=>{
+    const projs=getMaProjekte(m);
+    const gObj=geraete.find(g=>g.id===m.geraet);
+    const card=document.createElement('div');card.className='sb-card';card.draggable=true;
+    const farbe=projs.length?projs[0].farbe:'#ddd';
+    card.innerHTML=`<div style="display:flex;align-items:center;gap:4px"><span class="sb-card-name">${m.name}</span>${gObj?devIcon(gObj.typ,10):''}</div><div class="sb-card-sub">${m.typ==='fest'?'Fest':'Flex'} · ${(m.tage||[]).length}T · ${projs.map(p=>p.name).join(', ')}</div>`;
+    card.style.borderLeft=`3px solid ${farbe}`;card.style.borderRadius='0 6px 6px 0';
+    card.addEventListener('dragstart',e=>{dragData={type:'person',id:m.id};card.classList.add('dragging');e.dataTransfer.effectAllowed='move';});
+    card.addEventListener('dragend',()=>card.classList.remove('dragging'));
+    maEl.appendChild(card);
+  });
+  const devEl=document.getElementById('sdev');if(!devEl)return;
+  devEl.innerHTML='';
+  geraete.forEach(g=>{
+    const card=document.createElement('div');card.className='sb-card';card.draggable=true;
+    card.innerHTML=`<div style="display:flex;align-items:center;gap:4px">${devIcon(g.typ,10)}<span class="sb-card-name">${g.id}</span></div><div class="sb-card-sub">${g.typ} · ${g.art}${g.platz?' · P'+g.platz:''}</div>`;
+    card.addEventListener('dragstart',e=>{dragData={type:'geraet',id:g.id};card.classList.add('dragging');e.dataTransfer.effectAllowed='move';});
+    card.addEventListener('dragend',()=>card.classList.remove('dragging'));
+    devEl.appendChild(card);
+  });
+}
+
+function renderFloor(){
+  const area=document.getElementById('floor-area');if(!area)return;
+  area.innerHTML='';
+  ['oben','unten'].forEach(bereich=>{
+    const sec=document.createElement('div');
+    const lbl=document.createElement('div');lbl.className='floor-label';lbl.textContent=bereich==='oben'?'Oben':'Unten';sec.appendChild(lbl);
+    const tg=document.createElement('div');tg.className='tischgruppen';
+    GRUPPEN.filter(g=>g.bereich===bereich).forEach(gruppe=>{
+      const gDiv=document.createElement('div');gDiv.className='tischgruppe';
+      const gl=document.createElement('div');gl.className='tg-label';gl.textContent=gruppe.label;gDiv.appendChild(gl);
+      gruppe.plaetze.forEach(row=>{
+        const rd=document.createElement('div');rd.className='tisch-row';
+        row.forEach(nr=>{rd.appendChild(buildPlatz(nr));});
+        gDiv.appendChild(rd);
+      });
+      tg.appendChild(gDiv);
+    });
+    sec.appendChild(tg);area.appendChild(sec);
+  });
+}
+
+function buildPlatz(nr){
+  const p=document.createElement('div');p.className='platz';
+  const gesperrt=sperren.has(nr);
+  const person=gesperrt?null:getPersonAmPlatz(nr);
+  const geraet=getGeraetAmPlatz(nr);
+  if(gesperrt){
+    p.classList.add('gesperrt');
+    p.innerHTML=`<div class="platz-num">${nr}</div><svg style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none" viewBox="0 0 82 64" preserveAspectRatio="none"><line x1="6" y1="6" x2="76" y2="58" stroke="#ccc" stroke-width="1"/><line x1="76" y1="6" x2="6" y2="58" stroke="#ccc" stroke-width="1"/></svg>`;
+    p.onclick=()=>openAblagePop(nr);
+  } else {
+    setupDrop(p,nr);
+    if(person){
+      p.classList.add(person.quelle==='fest'?'fest':'gebucht');
+      const num=document.createElement('div');num.className='platz-num';num.textContent=nr;p.appendChild(num);
+      const ids=person.projekte||[];
+      if(ids.length){const dots=document.createElement('div');dots.className='proj-dots';dots.innerHTML=projDotsHTML(ids);p.appendChild(dots);}
+      const ne=document.createElement('div');ne.className='platz-name';ne.textContent=person.name;p.appendChild(ne);
+      if(geraet){const iw=document.createElement('div');iw.className='platz-icons';iw.innerHTML=devIcon(geraet.typ,12);p.appendChild(iw);}
+      p.onclick=()=>openPlatzPop(nr,person,geraet);
+    } else {
+      const num=document.createElement('div');num.className='platz-num';num.textContent=nr;p.appendChild(num);
+      if(geraet){const iw=document.createElement('div');iw.innerHTML=devIcon(geraet.typ,12);iw.style.opacity='0.25';p.appendChild(iw);}
+      const fl=document.createElement('div');fl.style.cssText='font-size:9px;color:#bbb';fl.textContent='frei';p.appendChild(fl);
+      p.onclick=()=>openFreiPop(nr,geraet);
+    }
+  }
+  return p;
+}
+
+function setupDrop(el,nr){
+  el.addEventListener('dragover',e=>{e.preventDefault();el.classList.add('over');});
+  el.addEventListener('dragleave',()=>el.classList.remove('over'));
+  el.addEventListener('drop',e=>{e.preventDefault();el.classList.remove('over');handleDrop(nr);});
+}
+
+async function handleDrop(nr){
+  if(!dragData)return;
+  if(sperren.has(nr)){showToast('Platz ist gesperrt');return;}
+  if(dragData.type==='person'){
+    const ma=mitarbeitende.find(m=>m.id===dragData.id);if(!ma)return;
+    if(!(ma.tage||[]).includes(currentDay)){showToast(ma.name+' ist '+currentDay+' nicht da');return;}
+    const belegt=getPersonAmPlatz(nr);
+    if(belegt&&belegt.id!==ma.id){showToast('Platz '+nr+' ist bereits belegt');return;}
+    if(ma.typ==='fest'){
+      const {error}=await sb.from('mitarbeitende').update({platz:nr}).eq('id',ma.id);
+      if(error){showToast('Fehler: '+error.message,true);return;}
+    } else {
+      await sb.from('buchungen').delete().eq('platz',nr).eq('tag',currentDay);
+      const {error}=await sb.from('buchungen').insert({platz:nr,tag:currentDay,mitarbeiter_id:ma.id});
+      if(error){showToast('Fehler: '+error.message,true);return;}
+    }
+    showToast(ma.name+' → Platz '+nr);
+    await loadAll();
+  } else {
+    const {error}=await sb.from('geraete').update({platz:nr}).eq('id',dragData.id);
+    if(error){showToast('Fehler: '+error.message,true);return;}
+    showToast(dragData.id+' → Platz '+nr);
+    await loadAll();
+  }
+  dragData=null;
+}
+
+async function autoAssign(){
+  const flex=mitarbeitende.filter(m=>m.typ==='flex'&&(m.tage||[]).includes(currentDay)&&!Object.values(buchungen[currentDay]).find(b=>b.id===m.id));
+  const belegt=new Set();
+  mitarbeitende.filter(m=>m.platz&&m.typ==='fest'&&(m.tage||[]).includes(currentDay)).forEach(m=>belegt.add(m.platz));
+  Object.keys(buchungen[currentDay]).forEach(k=>belegt.add(parseInt(k)));
+  const freie=[];for(let i=1;i<=24;i++){if(!sperren.has(i)&&!belegt.has(i))freie.push(i);}
+  const sorted=[...flex].sort((a,b)=>(b.tage||[]).length-(a.tage||[]).length);
+  const inserts=[];const neu=[];
+  sorted.forEach(ma=>{
+    const maIsMac=(ma.geraet||'').toLowerCase().includes('mb')||(ma.geraet||'').toLowerCase().includes('macbook');
+    let zi=null;
+    for(let i=0;i<freie.length;i++){
+      const g=geraete.find(g=>g.platz===freie[i]);
+      if(!g||g.art==='geteilt'||(maIsMac&&g.typ==='MacBook')||(!maIsMac&&g.typ==='iMac')){zi=freie.splice(i,1)[0];break;}
+    }
+    if(!zi&&freie.length){zi=freie.shift();}
+    if(zi){inserts.push({platz:zi,tag:currentDay,mitarbeiter_id:ma.id});neu.push(ma.name+'→Platz '+zi);}
+  });
+  if(inserts.length){
+    await sb.from('buchungen').delete().in('platz',inserts.map(i=>i.platz)).eq('tag',currentDay);
+    await sb.from('buchungen').insert(inserts);
+    showToast('Auto: '+neu.join(' | '));
+    await loadAll();
+  } else {
+    showToast('Alle Flex-Personen bereits platziert');
+  }
+}
+
+// ── TABLES ───────────────────────────────────────────────────
+function renderMaTable(){
+  const tb=document.getElementById('ma-tbody');if(!tb)return;
+  tb.innerHTML='';
+  if(!mitarbeitende.length){tb.innerHTML='<tr><td colspan="8" style="text-align:center;padding:20px;color:#aaa">Noch keine Mitarbeitenden</td></tr>';return;}
+  mitarbeitende.forEach(m=>{
+    const gObj=geraete.find(g=>g.id===m.geraet);
+    const tr=document.createElement('tr');
+    tr.innerHTML=`
+      <td style="font-weight:600">${m.name}</td>
+      <td><span class="badge ${m.typ==='fest'?'b-fest':'b-flex'}">${m.typ==='fest'?'Fest':'Flex'}</span></td>
+      <td>${m.platz?'Platz '+m.platz:'–'}</td>
+      <td><div style="display:flex;align-items:center;gap:4px">${gObj?devIcon(gObj.typ,11):''}${m.geraet||'–'}</div></td>
+      <td>${(m.tage||[]).join(', ')}</td>
+      <td><div class="proj-pills">${projPillsHTML(m.projekte)}</div></td>
+      <td style="color:#888;font-size:10px">${m.einschraenkung||'–'}</td>
+      <td style="white-space:nowrap"><button class="edit-btn" onclick="openEditPerson(${m.id})">Bearbeiten</button> <button class="del-btn" onclick="deletePerson(${m.id})">✕</button></td>`;
+    tb.appendChild(tr);
+  });
+}
+
+function renderDevTable(){
+  const tb=document.getElementById('dev-tbody');if(!tb)return;
+  tb.innerHTML='';
+  if(!geraete.length){tb.innerHTML='<tr><td colspan="6" style="text-align:center;padding:20px;color:#aaa">Noch keine Geräte</td></tr>';return;}
+  geraete.forEach(g=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML=`
+      <td><div style="display:flex;align-items:center;gap:5px;font-weight:600">${devIcon(g.typ,11)}${g.id}</div></td>
+      <td>${g.typ}</td>
+      <td>${g.platz?'Platz '+g.platz:'–'}</td>
+      <td><span class="badge b-${g.art}">${g.art}</span></td>
+      <td>${getNutzerVonGeraet(g.id)}</td>
+      <td style="white-space:nowrap"><button class="edit-btn" onclick="openEditGeraet('${g.id}')">Bearbeiten</button> <button class="del-btn" onclick="deleteGeraet('${g.id}')">✕</button></td>`;
+    tb.appendChild(tr);
+  });
+}
+
+function renderProjTable(){
+  const tb=document.getElementById('proj-tbody');if(!tb)return;
+  tb.innerHTML='';
+  if(!projekte.length){tb.innerHTML='<tr><td colspan="5" style="text-align:center;padding:20px;color:#aaa">Noch keine Projekte</td></tr>';return;}
+  projekte.forEach(p=>{
+    const mas=mitarbeitende.filter(m=>(m.projekte||[]).includes(p.id)).map(m=>m.name).join(', ');
+    const tr=document.createElement('tr');
+    tr.innerHTML=`
+      <td><span style="display:inline-block;width:16px;height:16px;border-radius:4px;background:${p.farbe}"></span></td>
+      <td style="font-weight:600">${p.name}</td>
+      <td style="font-size:10px;color:#888">${mas||'–'}</td>
+      <td style="font-size:10px;color:#888">${p.beschreibung||'–'}</td>
+      <td style="white-space:nowrap"><button class="edit-btn" onclick="openEditProjekt('${p.id}')">Bearbeiten</button> <button class="del-btn" onclick="deleteProjekt('${p.id}')">✕</button></td>`;
+    tb.appendChild(tr);
+  });
+}
+
+// ── PERSON CRUD ──────────────────────────────────────────────
+function openAddPerson(){
+  showModal(`<div class="modal-title">Person hinzufügen</div>
+    <div class="form-row"><label>Name</label><input id="f-name" type="text" placeholder="Max M."></div>
+    <div class="form-row"><label>Typ</label><select id="f-typ"><option value="fest">Fester Platz</option><option value="flex">Flex</option></select></div>
+    <div class="form-row"><label>Gerät-ID</label><input id="f-geraet" type="text" placeholder="iMac-07 oder MB-05"></div>
+    <div class="form-row"><label>Projekte</label>${projCheckboxes([])}</div>
+    <div class="form-row"><label>Bürotage</label><div class="day-checks">${['Mo','Di','Mi','Do','Fr'].map(d=>`<label><input type="checkbox" value="${d}" checked> ${d}</label>`).join('')}</div></div>
+    <div class="form-row"><label>Einschränkung</label><input id="f-einschr" type="text" placeholder="z.B. Fensterplatz"></div>
+    <div><button class="mbtn grn" onclick="savePerson(null)">Hinzufügen</button><button class="mbtn" onclick="closeModal()">Abbrechen</button></div>`);
+}
+
+function openEditPerson(id){
+  const m=mitarbeitende.find(m=>m.id===id);if(!m)return;
+  showModal(`<div class="modal-title">Bearbeiten – ${m.name}</div>
+    <div class="form-row"><label>Name</label><input id="f-name" type="text" value="${m.name}"></div>
+    <div class="form-row"><label>Typ</label><select id="f-typ"><option value="fest" ${m.typ==='fest'?'selected':''}>Fester Platz</option><option value="flex" ${m.typ==='flex'?'selected':''}>Flex</option></select></div>
+    <div class="form-row"><label>Gerät-ID</label><input id="f-geraet" type="text" value="${m.geraet||''}"></div>
+    <div class="form-row"><label>Projekte</label>${projCheckboxes(m.projekte||[])}</div>
+    <div class="form-row"><label>Bürotage</label><div class="day-checks">${['Mo','Di','Mi','Do','Fr'].map(d=>`<label><input type="checkbox" value="${d}" ${(m.tage||[]).includes(d)?'checked':''}> ${d}</label>`).join('')}</div></div>
+    <div class="form-row"><label>Einschränkung</label><input id="f-einschr" type="text" value="${m.einschraenkung||''}"></div>
+    <div><button class="mbtn grn" onclick="savePerson(${id})">Speichern</button><button class="mbtn" onclick="closeModal()">Abbrechen</button></div>`);
+}
+
+async function savePerson(id){
+  const name=document.getElementById('f-name').value.trim();
+  if(!name){showToast('Name erforderlich',true);return;}
+  const tage=Array.from(document.querySelectorAll('.day-checks input:checked')).map(i=>i.value);
+  const data={name,typ:document.getElementById('f-typ').value,geraet:document.getElementById('f-geraet').value||null,projekte:getCheckedProjekte(),tage,einschraenkung:document.getElementById('f-einschr').value};
+  let error;
+  if(id){({error}=await sb.from('mitarbeitende').update(data).eq('id',id));}
+  else{({error}=await sb.from('mitarbeitende').insert({...data,platz:null}));}
+  if(error){showToast('Fehler: '+error.message,true);return;}
+  closeModal();showToast(name+(id?' aktualisiert':' hinzugefügt'));await loadAll();
+}
+
+async function deletePerson(id){
+  const m=mitarbeitende.find(m=>m.id===id);
+  if(!confirm('Wirklich löschen: '+m.name+'?'))return;
+  const {error}=await sb.from('mitarbeitende').delete().eq('id',id);
+  if(error){showToast('Fehler: '+error.message,true);return;}
+  showToast(m.name+' entfernt');await loadAll();
+}
+
+// ── GERAET CRUD ──────────────────────────────────────────────
+function openAddGeraet(){
+  showModal(`<div class="modal-title">Gerät hinzufügen</div>
+    <div class="form-row"><label>Geräte-ID</label><input id="g-id" type="text" placeholder="iMac-08 oder Screen-03"></div>
+    <div class="form-row"><label>Typ</label><select id="g-typ"><option value="iMac">iMac</option><option value="MacBook">MacBook</option><option value="Bildschirm">Bildschirm</option></select></div>
+    <div class="form-row"><label>Nutzungsart</label><select id="g-art"><option value="fest">Fest</option><option value="geteilt">Geteilt</option><option value="mobil">Mobil</option></select></div>
+    <div class="form-row"><label>Platz (optional)</label><input id="g-platz" type="text" placeholder="z.B. 11"></div>
+    <div><button class="mbtn grn" onclick="saveGeraet(null)">Hinzufügen</button><button class="mbtn" onclick="closeModal()">Abbrechen</button></div>`);
+}
+
+function openEditGeraet(gid){
+  const g=geraete.find(g=>g.id===gid);if(!g)return;
+  showModal(`<div class="modal-title">Bearbeiten – ${g.id}</div>
+    <div class="form-row"><label>Geräte-ID</label><input id="g-id" type="text" value="${g.id}"></div>
+    <div class="form-row"><label>Typ</label><select id="g-typ"><option value="iMac" ${g.typ==='iMac'?'selected':''}>iMac</option><option value="MacBook" ${g.typ==='MacBook'?'selected':''}>MacBook</option><option value="Bildschirm" ${g.typ==='Bildschirm'?'selected':''}>Bildschirm</option></select></div>
+    <div class="form-row"><label>Nutzungsart</label><select id="g-art"><option value="fest" ${g.art==='fest'?'selected':''}>Fest</option><option value="geteilt" ${g.art==='geteilt'?'selected':''}>Geteilt</option><option value="mobil" ${g.art==='mobil'?'selected':''}>Mobil</option></select></div>
+    <div class="form-row"><label>Platz</label><input id="g-platz" type="text" value="${g.platz||''}"></div>
+    <div><button class="mbtn grn" onclick="saveGeraet('${gid}')">Speichern</button><button class="mbtn" onclick="closeModal()">Abbrechen</button></div>`);
+}
+
+async function saveGeraet(oldId){
+  const id=document.getElementById('g-id').value.trim();if(!id){showToast('ID erforderlich',true);return;}
+  const pv=document.getElementById('g-platz').value.trim();
+  const data={id,typ:document.getElementById('g-typ').value,art:document.getElementById('g-art').value,platz:pv?parseInt(pv):null};
+  let error;
+  if(oldId){({error}=await sb.from('geraete').update(data).eq('id',oldId));}
+  else{({error}=await sb.from('geraete').insert(data));}
+  if(error){showToast('Fehler: '+error.message,true);return;}
+  closeModal();showToast(id+(oldId?' aktualisiert':' hinzugefügt'));await loadAll();
+}
+
+async function deleteGeraet(id){
+  if(!confirm('Wirklich löschen: '+id+'?'))return;
+  const {error}=await sb.from('geraete').delete().eq('id',id);
+  if(error){showToast('Fehler: '+error.message,true);return;}
+  showToast(id+' entfernt');await loadAll();
+}
+
+// ── PROJEKT CRUD ─────────────────────────────────────────────
+function openAddProjekt(){
+  showModal(`<div class="modal-title">Projekt hinzufügen</div>
+    <div class="form-row"><label>Projektname</label><input id="p-name" type="text" placeholder="Projekt D"></div>
+    <div class="form-row"><label>Farbe</label><select id="p-farbe">${projFarben.map(f=>`<option value="${f}">${f}</option>`).join('')}</select></div>
+    <div class="form-row"><label>Beschreibung</label><input id="p-desc" type="text" placeholder="Kurzbeschreibung"></div>
+    <div><button class="mbtn grn" onclick="saveProjekt(null)">Hinzufügen</button><button class="mbtn" onclick="closeModal()">Abbrechen</button></div>`);
+}
+
+function openEditProjekt(pid){
+  const p=projekte.find(p=>p.id===pid);if(!p)return;
+  showModal(`<div class="modal-title">Bearbeiten – ${p.name}</div>
+    <div class="form-row"><label>Projektname</label><input id="p-name" type="text" value="${p.name}"></div>
+    <div class="form-row"><label>Farbe</label><select id="p-farbe">${projFarben.map(f=>`<option value="${f}" ${p.farbe===f?'selected':''}>${f}</option>`).join('')}</select></div>
+    <div class="form-row"><label>Beschreibung</label><input id="p-desc" type="text" value="${p.beschreibung||''}"></div>
+    <div><button class="mbtn grn" onclick="saveProjekt('${pid}')">Speichern</button><button class="mbtn" onclick="closeModal()">Abbrechen</button></div>`);
+}
+
+async function saveProjekt(pid){
+  const name=document.getElementById('p-name').value.trim();if(!name){showToast('Name erforderlich',true);return;}
+  const data={name,farbe:document.getElementById('p-farbe').value,beschreibung:document.getElementById('p-desc').value};
+  let error;
+  if(pid){({error}=await sb.from('projekte').update(data).eq('id',pid));}
+  else{({error}=await sb.from('projekte').insert({...data,id:'P'+Date.now()}));}
+  if(error){showToast('Fehler: '+error.message,true);return;}
+  closeModal();showToast(name+(pid?' aktualisiert':' hinzugefügt'));await loadAll();
+}
+
+async function deleteProjekt(pid){
+  const p=projekte.find(p=>p.id===pid);
+  if(!confirm('Wirklich löschen: '+p.name+'?'))return;
+  const {error}=await sb.from('projekte').delete().eq('id',pid);
+  if(error){showToast('Fehler: '+error.message,true);return;}
+  showToast(p.name+' entfernt');await loadAll();
+}
+
+// ── PLATZ POPUPS ─────────────────────────────────────────────
+function openPlatzPop(nr,person,geraet){
+  const ma=mitarbeitende.find(m=>m.id===person.id)||person;
+  const projs=getMaProjekte(ma);
+  showModal(`<div class="modal-title">Platz ${nr} – ${ma.name}</div>
+    <div class="mrow"><span class="mlabel">Status</span><span class="mval"><span class="badge ${ma.quelle==='fest'?'b-fest':'b-flex'}">${ma.quelle==='fest'?'Fester Platz':'Gebucht'}</span></span></div>
+    <div class="mrow"><span class="mlabel">Gerät</span><span class="mval">${geraet?devIcon(geraet.typ,11)+' '+geraet.typ+' – '+geraet.id:'–'}</span></div>
+    <div class="mrow"><span class="mlabel">Projekte</span><span class="mval"><div class="proj-pills">${projPillsHTML(ma.projekte)}</div></span></div>
+    <div class="mrow"><span class="mlabel">Bürotage</span><span class="mval">${(ma.tage||[]).join(', ')||'–'}</span></div>
+    ${ma.einschraenkung?`<div class="notiz-box" style="background:#FAEEDA;border:1px solid #EF9F27;color:#633806"><div class="notiz-t">Einschränkung</div>${ma.einschraenkung}</div>`:''}
+    ${projs.length?`<div class="notiz-box" style="background:#E6F1FB;border:1px solid #378ADD;color:#042C53"><div class="notiz-t">Projektabhängigkeiten</div>${projs.map(p=>p.name+(p.beschreibung?' – '+p.beschreibung:'')).join('<br>')}</div>`:''}
+    <div><button class="mbtn red" onclick="entfernen(${nr})">Von Platz entfernen</button><button class="mbtn" onclick="closeModal()">Schließen</button></div>`);
+}
+
+function openAblagePop(nr){
+  showModal(`<div class="modal-title">Platz ${nr} – Ablage (gesperrt)</div>
+    <p style="font-size:11px;color:#888;margin:8px 0">Dieser Platz ist gesperrt. Freischalten um ihn wieder zu nutzen.</p>
+    <div><button class="mbtn grn" onclick="freischalten(${nr})">Freischalten</button><button class="mbtn" onclick="closeModal()">Schließen</button></div>`);
+}
+
+function openFreiPop(nr,geraet){
+  const flex=mitarbeitende.filter(m=>m.typ==='flex'&&(m.tage||[]).includes(currentDay));
+  const opts=flex.map(m=>`<option value="${m.id}">${m.name}</option>`).join('');
+  showModal(`<div class="modal-title">Platz ${nr} – frei</div>
+    <div class="mrow"><span class="mlabel">Gerät</span><span class="mval">${geraet?devIcon(geraet.typ,11)+' '+geraet.typ+' · '+geraet.id:'–'}</span></div>
+    <div class="form-row" style="margin-top:10px"><label>Flex-Person buchen</label><select id="buch-sel"><option value="">– wählen –</option>${opts}</select></div>
+    <div><button class="mbtn grn" onclick="buchen(${nr})">Buchen</button><button class="mbtn" onclick="closeModal()">Schließen</button></div>`);
+}
+
+async function buchen(nr){
+  const sel=document.getElementById('buch-sel').value;if(!sel){showToast('Person wählen',true);return;}
+  await sb.from('buchungen').delete().eq('platz',nr).eq('tag',currentDay);
+  const {error}=await sb.from('buchungen').insert({platz:nr,tag:currentDay,mitarbeiter_id:parseInt(sel)});
+  if(error){showToast('Fehler: '+error.message,true);return;}
+  const ma=mitarbeitende.find(m=>m.id==sel);
+  closeModal();showToast(ma.name+' → Platz '+nr);await loadAll();
+}
+
+async function entfernen(nr){
+  const p=getPersonAmPlatz(nr);if(!p)return;
+  if(p.quelle==='fest'){await sb.from('mitarbeitende').update({platz:null}).eq('id',p.id);}
+  else{await sb.from('buchungen').delete().eq('platz',nr).eq('tag',currentDay);}
+  closeModal();await loadAll();
+}
+
+async function freischalten(nr){
+  await sb.from('sperren').delete().eq('platz',nr);
+  closeModal();showToast('Platz '+nr+' freigeschaltet');await loadAll();
+}
+
+// ── UI HELPERS ───────────────────────────────────────────────
+function showModal(html){document.getElementById('modal-c').innerHTML=`<div class="modal-wrap" onclick="if(event.target===this)closeModal()"><div class="modal">${html}</div></div>`;}
+function closeModal(){document.getElementById('modal-c').innerHTML='';}
+function showToast(msg,err){const t=document.getElementById('toast');t.textContent=msg;t.className='toast show'+(err?' err':'');setTimeout(()=>t.classList.remove('show'),2800);}
+
+function showTopTab(id,btn){
+  document.querySelectorAll('.tab-content').forEach(el=>{el.classList.remove('active');el.style.display='none';});
+  document.querySelectorAll('.top-tab').forEach(el=>el.classList.remove('active'));
+  const tc=document.getElementById('tab-'+id);tc.style.display='flex';tc.classList.add('active');btn.classList.add('active');
+  if(id==='mitarbeitende')renderMaTable();
+  if(id==='geraete')renderDevTable();
+  if(id==='projekte')renderProjTable();
+}
+
+function toggleSidebar(){
+  sidebarOpen=!sidebarOpen;
+  document.getElementById('sidebar').classList.toggle('collapsed',!sidebarOpen);
+  document.getElementById('sb-icon').textContent=sidebarOpen?'‹':'›';
+}
+function toggleSec(id){
+  const el=document.getElementById(id);const ch=document.getElementById('chev-'+id);
+  const h=el.style.display==='none';el.style.display=h?'flex':'none';ch.classList.toggle('open',h);
+}
+function setDay(day,btn){
+  currentDay=day;document.querySelectorAll('.day-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');renderFloor();renderSidebar();
+}
+function renderAll(){renderSidebar();renderFloor();renderMaTable();renderDevTable();renderProjTable();}
+
+// ── INIT ─────────────────────────────────────────────────────
+document.querySelectorAll('.tab-content').forEach(el=>el.style.display='none');
+document.getElementById('tab-sitzplan').style.display='flex';
+loadAll();
+</script>
+</body>
+</html>
