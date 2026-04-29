@@ -257,13 +257,12 @@ function getTeamWarnung(ma,platzNr){
 async function loadAll(){
   document.getElementById('loading-overlay').style.display='flex';
   try{
-    const [pR,gR,mR,sR,bR,mzR]=await Promise.all([
+    const [pR,gR,mR,sR,bR]=await Promise.all([
       sb.from('projekte').select('*'),
       sb.from('geraete').select('*'),
       sb.from('mitarbeitende').select('*'),
       sb.from('sperren').select('*'),
       sb.from('buchungen').select('*'),
-      sb.from('mainz').select('*').catch(()=>({data:[]})),
     ]);
     projekte=pR.data||[];geraete=gR.data||[];mitarbeitende=mR.data||[];
     sperren=new Set((sR.data||[]).map(s=>s.platz));
@@ -274,7 +273,7 @@ async function loadAll(){
       else if(b.buchungsname)buchungen[b.tag][b.platz]={name:b.buchungsname,quelle:'gebucht',buchungsname:b.buchungsname,projekte:[]};
     });
     mainzEintraege={Mo:[],Di:[],Mi:[],Do:[],Fr:[]};
-    (mzR.data||[]).forEach(e=>{if(mainzEintraege[e.tag])mainzEintraege[e.tag].push(e);});
+    try{const mzR=await sb.from('mainz').select('*');(mzR.data||[]).forEach(e=>{if(mainzEintraege[e.tag])mainzEintraege[e.tag].push(e);});}catch(ex){console.log('mainz table not ready yet');}
     renderAll();
   }catch(e){showToast('Ladefehler: '+e.message,true);}
   document.getElementById('loading-overlay').style.display='none';
