@@ -344,7 +344,20 @@ function buildPlatz(nr){
     const ids=person.projekte||[];
     if(ids.length){const dots=document.createElement('div');dots.className='proj-dots';dots.innerHTML=projDotsHTML(ids);p.appendChild(dots);}
     const ne=document.createElement('div');ne.className='platz-name';ne.textContent=person.name;pz.appendChild(ne);
-    p.appendChild(pz);p.onclick=()=>openPlatzPop(nr,person,geraet);
+    p.appendChild(pz);
+    // Make occupied platz draggable too
+    p.draggable=true;
+    let dragStarted=false;
+    p.addEventListener('dragstart',e=>{
+      dragStarted=true;
+      const ma=mitarbeitende.find(m=>m.id===person.id);
+      if(ma){dragData={type:'person',id:ma.id};}
+      else{dragData={type:'named',name:person.name,platz:nr};}
+      e.dataTransfer.effectAllowed='move';
+      p.style.opacity='0.5';
+    });
+    p.addEventListener('dragend',()=>{p.style.opacity='1';setTimeout(()=>{dragStarted=false;},100);});
+    p.onclick=()=>{if(!dragStarted)openPlatzPop(nr,person,geraet);};
   } else {
     const fl=document.createElement('div');fl.className='platz-frei';fl.textContent='frei';pz.appendChild(fl);
     p.appendChild(pz);p.onclick=()=>openFreiPop(nr,geraet);
@@ -359,6 +372,12 @@ function setupDrop(el,nr){
 async function handleDrop(nr){
   if(!dragData)return;
   if(sperren.has(nr)){showToast('Platz ist gesperrt');return;}
+  if(dragData.type==='named'){
+    // Remove from old platz, add to new
+    await sb.from('buchungen').delete().eq('platz',dragData.platz).eq('tag',currentDay);
+    await sb.from('buchungen').insert({platz:nr,tag:currentDay,buchungsname:dragData.name});
+    showToast(dragData.name+' → Platz '+nr);dragData=null;await loadAll();return;
+  }
   if(dragData.type==='person'){
     const ma=mitarbeitende.find(m=>m.id===dragData.id);if(!ma)return;
     if(!(ma.tage||[]).includes(currentDay)){showToast(ma.name+' ist '+currentDay+' nicht da');return;}
