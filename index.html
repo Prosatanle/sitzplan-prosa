@@ -745,7 +745,14 @@ function personForm(m){
 }
 
 function openAddPerson(){showModal('<div class="modal-title">Person hinzufügen</div>'+personForm(null)+'<div><button class="mbtn grn" onclick="savePerson(null)">Hinzufügen</button><button class="mbtn" onclick="closeModal()">Abbrechen</button></div>');}
-function openEditPerson(id){const m=mitarbeitende.find(m=>m.id===id);if(!m)return;showModal('<div class="modal-title">Bearbeiten – '+m.name+'</div>'+personForm(m)+'<div><button class="mbtn grn" onclick="savePerson('+id+')">Speichern</button><button class="mbtn" onclick="closeModal()">Abbrechen</button></div>');}
+function openEditPerson(id){
+  const m=mitarbeitende.find(m=>m.id===id);
+  if(!m){showToast('Person nicht gefunden',true);return;}
+  try{
+    const html='<div class="modal-title">Bearbeiten</div>'+personForm(m)+'<div><button class="mbtn grn" onclick="savePerson('+id+')">Speichern</button><button class="mbtn" onclick="closeModal()">Abbrechen</button></div>';
+    showModal(html);
+  }catch(e){showToast('Fehler beim Öffnen: '+e.message,true);console.error(e);}
+}
 
 async function savePerson(id){
   const name=document.getElementById('f-name').value.trim();if(!name){showToast('Name erforderlich',true);return;}
@@ -756,8 +763,10 @@ async function savePerson(id){
   if(id){({error}=await sb.from('mitarbeitende').update(data).eq('id',id));}
   else{({error}=await sb.from('mitarbeitende').insert({...data,platz:null}));}
   if(error){showToast('Fehler: '+error.message,true);return;}
-  await sb.from('mainz').delete().eq('name',name);
-  if(mainzTage.length){await sb.from('mainz').insert(mainzTage.map(tag=>({name,tag})));}
+  try{
+    await sb.from('mainz').delete().eq('name',name);
+    if(mainzTage.length){await sb.from('mainz').insert(mainzTage.map(tag=>({name,tag})));}
+  }catch(e){console.log('mainz sync skipped:',e);}
   closeModal();showToast(name+(id?' aktualisiert':' hinzugefügt'));await loadAll();
 }
 
