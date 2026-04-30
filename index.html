@@ -586,7 +586,7 @@ function renderMaTable(){
       +'<td><span class="badge '+(m.typ==='fest'?'b-fest':'b-flex')+'">'+(m.typ==='fest'?'Fest':'Flex')+'</span></td>'
       +'<td>'+(m.platz?'Platz '+m.platz:'–')+'</td>'
       +'<td><div style="display:flex;align-items:center;gap:4px">'+(gObj?devIcon(gObj.typ,11):'')+(m.geraet||'–')+'</div></td>'
-      +'<td style="font-size:10px;color:#888">'+(m.imac_logins||[]).join(', ')||'–'+'</td>'
+      +'<td style="font-size:10px;color:#888">'+((m.imac_logins||[]).join(', ')||'–')+'</td>'
       +'<td>'+(m.tage||[]).join(', ')+'</td>'
       +'<td style="font-size:10px;color:#7A6300">'+(m.mainz_tage&&m.mainz_tage.length?m.mainz_tage.join(', '):'–')+'</td>'
       +'<td><div class="proj-pills">'+projPillsHTML(m.projekte)+'</div></td>'
