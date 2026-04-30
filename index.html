@@ -9,18 +9,20 @@
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#FAFAF7;color:#1a1a1a;font-size:13px}
 .app{display:flex;flex-direction:column;height:100vh;overflow:hidden}
-.top-tabs{display:flex;background:#FFFEF5;border-bottom:2px solid #DDB200;padding:0 16px;flex-shrink:0}
-.top-tab{padding:11px 16px;font-size:12px;font-weight:500;cursor:pointer;color:#888;border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap;transition:color 0.15s}
+.top-tabs{display:flex;background:#FFFEF5;border-bottom:2px solid #DDB200;padding:0 16px;flex-shrink:0;align-items:center}
+.top-tab{padding:11px 14px;font-size:12px;font-weight:500;cursor:pointer;color:#888;border-bottom:2px solid transparent;margin-bottom:-2px;white-space:nowrap;transition:color 0.15s}
 .top-tab:hover{color:#1a1a1a}
 .top-tab.active{color:#DDB200;border-bottom-color:#DDB200}
-.loading-overlay{position:fixed;inset:0;background:rgba(255,255,255,0.88);display:flex;align-items:center;justify-content:center;z-index:500;gap:10px;font-size:13px;color:#888}
+.date-badge{margin-left:auto;display:flex;align-items:center;gap:10px;font-size:11px;color:#888;padding-right:4px}
+.date-badge .kw{background:#DDB20020;border:1px solid #DDB20055;border-radius:5px;padding:2px 8px;font-weight:600;color:#7A6300}
+.loading-overlay{position:fixed;inset:0;background:rgba(255,255,253,0.9);display:flex;align-items:center;justify-content:center;z-index:500;gap:10px;font-size:13px;color:#888}
 .spinner{width:20px;height:20px;border:2px solid #e5e5e3;border-top-color:#DDB200;border-radius:50%;animation:spin 0.7s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 .tab-content{display:none;flex:1;overflow:hidden}
 .tab-content.active{display:flex;flex:1;overflow:hidden}
-.sidebar{width:220px;min-width:220px;background:#FFFEF5;border-right:1px solid #DDB20033;display:flex;flex-direction:column;transition:width 0.18s,min-width 0.18s;overflow:hidden;flex-shrink:0}
+.sidebar{width:210px;min-width:210px;background:#FFFEF5;border-right:1px solid #DDB20033;display:flex;flex-direction:column;transition:width 0.18s,min-width 0.18s;overflow:hidden;flex-shrink:0}
 .sidebar.collapsed{width:36px;min-width:36px}
-.sb-toggle{display:flex;align-items:center;justify-content:space-between;padding:10px;border-bottom:1px solid #e5e5e3;cursor:pointer;user-select:none;min-height:40px}
+.sb-toggle{display:flex;align-items:center;justify-content:space-between;padding:10px;border-bottom:1px solid #DDB20033;cursor:pointer;user-select:none;min-height:40px}
 .sb-toggle-title{font-size:11px;font-weight:500;white-space:nowrap}
 .sb-icon{font-size:13px;color:#888;flex-shrink:0}
 .sidebar.collapsed .sb-toggle-title,.sidebar.collapsed .sb-body{display:none}
@@ -31,24 +33,28 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .sb-chev{font-size:10px;color:#aaa;transition:transform 0.15s}
 .sb-chev.open{transform:rotate(90deg)}
 .sb-items{display:flex;flex-direction:column;gap:3px;margin-top:3px}
-.sb-card{background:#FAFAF7;border:1px solid #DDB20022;border-radius:6px;padding:5px 7px;cursor:grab;user-select:none;font-size:10px}
+.sb-card{background:#FDF8E0;border:1px solid #DDB20033;border-radius:6px;padding:5px 7px;cursor:grab;user-select:none;font-size:10px}
 .sb-card:active{cursor:grabbing;opacity:0.6}
 .sb-card.dragging{opacity:0.4}
 .sb-card-name{font-weight:600;color:#1a1a1a}
 .sb-card-sub{color:#888;font-size:9px;margin-top:1px}
-.add-sb-btn{width:100%;padding:4px;font-size:9px;border:1px dashed #ccc;border-radius:6px;cursor:pointer;color:#888;background:transparent;margin-top:3px;text-align:center}
-.add-sb-btn:hover{border-color:#DDB200;color:#DDB200}
+.add-sb-btn{width:100%;padding:4px;font-size:9px;border:1px dashed #DDB20066;border-radius:6px;cursor:pointer;color:#888;background:transparent;margin-top:3px;text-align:center}
+.add-sb-btn:hover{border-color:#DDB200;color:#7A6300}
 .main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
-.topbar{display:flex;align-items:center;gap:6px;padding:9px 12px;border-bottom:1px solid #DDB20033;background:#FFFEF5;flex-wrap:wrap;flex-shrink:0}
+.topbar{display:flex;align-items:center;gap:6px;padding:8px 12px;border-bottom:1px solid #DDB20033;background:#FFFEF5;flex-wrap:wrap;flex-shrink:0}
 .day-btn{padding:4px 9px;font-size:11px;cursor:pointer;border:1px solid #ddd;border-radius:6px;background:#fff;color:#444;transition:all 0.12s}
 .day-btn.active{background:#DDB200;color:#fff;border-color:#DDB200}
-.auto-btn{margin-left:auto;padding:5px 11px;font-size:11px;border-radius:6px;border:1px solid #DDB200;color:#7A6300;background:#FDF5CC;cursor:pointer;font-weight:500}
+.day-btn.today-marker{border-color:#DDB200;color:#DDB200;font-weight:600}
+.auto-btn{padding:5px 11px;font-size:11px;border-radius:6px;border:1px solid #DDB200;color:#7A6300;background:#FDF5CC;cursor:pointer;font-weight:500}
 .auto-btn:hover{background:#F5E570}
+.print-btn{padding:5px 11px;font-size:11px;border-radius:6px;border:1px solid #4A8BC4;color:#185FA5;background:#E6F1FB;cursor:pointer;font-weight:500}
+.print-btn:hover{background:#C8DDF5}
+.floor-wrap{flex:1;display:flex;overflow:hidden}
 .floor-area{flex:1;overflow-y:auto;padding:14px}
-.floor-label{font-size:18px;font-weight:600;color:#DDB200;margin-bottom:12px}
-.tischgruppen{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:22px}
+.floor-label{font-size:16px;font-weight:600;color:#DDB200;margin-bottom:10px}
+.tischgruppen{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:18px}
 .tischgruppe{display:flex;flex-direction:column}
-.tg-label{font-size:10px;font-weight:700;color:#4A8BC4;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.06em}
+.tg-label{font-size:10px;font-weight:700;color:#4A8BC4;margin-bottom:5px;text-transform:uppercase;letter-spacing:0.06em}
 .tisch-row{display:flex}
 .platz{width:140px;height:110px;border:1px solid #DDB20044;background:#fff;display:flex;flex-direction:column;cursor:pointer;position:relative;transition:background 0.1s;overflow:hidden}
 .platz:hover{background:#FAFAF3}
@@ -56,63 +62,89 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .platz.fest{background:#EAF3DE}
 .platz.gebucht{background:#E6F1FB}
 .platz.gesperrt{background:#FAFAF7;cursor:pointer}
-.platz-geraet-zone{background:#DDB20015;border-bottom:1px solid #DDB20030;padding:5px 8px;display:flex;align-items:center;gap:5px;min-height:36px;flex-shrink:0}
-.platz-geraet-id{font-size:10px;font-weight:600;color:#555;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.platz-geraet-zone{background:#DDB20015;border-bottom:1px solid #DDB20030;padding:4px 7px;display:flex;align-items:center;justify-content:space-between;min-height:32px;flex-shrink:0}
+.platz-geraet-left{display:flex;align-items:center;gap:3px;flex:1;min-width:0;overflow:hidden}
+.platz-geraet-id{font-size:9px;font-weight:600;color:#555;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.platz-screen-id{display:flex;align-items:center;gap:2px;font-size:9px;color:#888;white-space:nowrap;flex-shrink:0}
 .platz-geraet-leer{font-size:9px;color:#ccc;font-style:italic}
-.platz-person-zone{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:6px 8px;gap:2px}
+.platz-person-zone{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:5px 7px;gap:1px}
 .platz-name{font-size:13px;font-weight:700;color:#1a1a1a;line-height:1.2;text-align:center}
+.platz-status-badge{font-size:8px;font-weight:600;padding:1px 5px;border-radius:4px;margin-top:2px}
 .platz-frei{font-size:10px;color:#bbb;text-align:center}
-.platz-num{font-size:8px;color:#bbb;font-weight:600;position:absolute;top:3px;right:5px;z-index:2}
-.proj-dots{display:flex;gap:2px;position:absolute;bottom:4px;right:5px}
+.platz-num{font-size:8px;color:#bbb;font-weight:600;position:absolute;top:2px;right:4px;z-index:2}
+.proj-dots{display:flex;gap:2px;position:absolute;bottom:3px;right:4px}
 .proj-dot{width:7px;height:7px;border-radius:50%}
-.legend{display:flex;gap:10px;padding:7px 14px;border-top:1px solid #DDB20033;background:#FFFEF5;flex-wrap:wrap;flex-shrink:0}
-.leg-item{display:flex;align-items:center;gap:3px;font-size:10px;color:#888}
-.leg-dot{width:10px;height:10px;border-radius:2px;border:1px solid #DDB20022}
+
+/* WHO IS HERE PANEL */
+.who-panel{width:200px;min-width:200px;background:#FFFEF5;border-left:1px solid #DDB20033;display:flex;flex-direction:column;flex-shrink:0;overflow:hidden}
+.who-header{padding:10px 10px 6px;border-bottom:1px solid #DDB20033;flex-shrink:0}
+.who-title{font-size:11px;font-weight:600;color:#7A6300}
+.who-date{font-size:10px;color:#aaa;margin-top:1px}
+.who-body{flex:1;overflow-y:auto;padding:7px}
+.who-section-lbl{font-size:9px;font-weight:600;color:#aaa;text-transform:uppercase;letter-spacing:0.07em;margin:6px 0 3px}
+.who-card{display:flex;align-items:center;gap:6px;padding:4px 6px;border-radius:5px;margin-bottom:3px;font-size:10px}
+.who-card.im-buero{background:#EAF3DE;border:1px solid #C0DD97}
+.who-card.in-mainz{background:#FDF5CC;border:1px solid #DDB20066}
+.who-card.homeoffice{background:#E6F1FB;border:1px solid #93C5E8}
+.who-card.abwesend{background:#f5f5f3;border:1px solid #ddd;text-decoration:line-through;color:#aaa}
+.who-name{font-weight:600;flex:1}
+.who-label{font-size:8px;font-weight:600;padding:1px 4px;border-radius:3px}
+.lbl-mainz{background:#DDB200;color:#fff}
+.lbl-ho{background:#4A8BC4;color:#fff}
+.lbl-ab{background:#aaa;color:#fff}
+.lbl-fest{background:#639922;color:#fff}
+
+.legend{display:flex;gap:8px;padding:6px 12px;border-top:1px solid #DDB20033;background:#FFFEF5;flex-wrap:wrap;flex-shrink:0;align-items:center}
+.leg-item{display:flex;align-items:center;gap:3px;font-size:9px;color:#888}
+.leg-dot{width:9px;height:9px;border-radius:2px}
+
 .list-pane{flex:1;display:flex;flex-direction:column;overflow:hidden;padding:14px}
 .list-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
 .list-title{font-size:15px;font-weight:600}
-.add-btn{padding:6px 12px;font-size:11px;border-radius:6px;border:1px solid #DDB200;color:#DDB200;background:transparent;cursor:pointer;font-weight:500}
+.add-btn{padding:6px 12px;font-size:11px;border-radius:6px;border:1px solid #DDB200;color:#7A6300;background:transparent;cursor:pointer;font-weight:500}
 .add-btn:hover{background:#FDF5CC}
-.tbl-wrap{flex:1;overflow-y:auto;border:1px solid #DDB20022;border-radius:8px;background:#fff}
+.tbl-wrap{flex:1;overflow-y:auto;border:1px solid #DDB20044;border-radius:8px;background:#fff}
 table{width:100%;border-collapse:collapse;font-size:11px}
 th{text-align:left;padding:8px 10px;font-size:10px;font-weight:600;color:#888;border-bottom:2px solid #DDB20055;position:sticky;top:0;background:#FFFEF5;z-index:1}
 td{padding:7px 10px;border-bottom:1px solid #f0f0ee;color:#1a1a1a;vertical-align:middle}
 tr:last-child td{border-bottom:none}
 tr:hover td{background:#FAFAF3}
 .edit-btn{padding:3px 8px;font-size:10px;border-radius:5px;border:1px solid #ddd;cursor:pointer;background:transparent;color:#666}
-.edit-btn:hover{border-color:#DDB200;color:#DDB200}
+.edit-btn:hover{border-color:#DDB200;color:#7A6300}
 .del-btn{padding:3px 8px;font-size:10px;border-radius:5px;border:1px solid #eee;cursor:pointer;background:transparent;color:#bbb}
 .del-btn:hover{border-color:#D85A30;color:#712B13}
 .badge{display:inline-block;padding:2px 7px;border-radius:10px;font-size:9px;font-weight:600}
-.b-fest{background:#EAF3DE;color:#7A6300}
+.b-fest{background:#EAF3DE;color:#27500A}
 .b-flex{background:#E6F1FB;color:#0C447C}
-.b-geteilt{background:#FDF5CC;color:#633806}
-.b-mobil{background:#FAFAF7;color:#888}
+.b-geteilt{background:#FDF5CC;color:#7A6300}
+.b-mobil{background:#f5f5f3;color:#888}
 .proj-pills{display:flex;flex-wrap:wrap;gap:3px}
 .proj-pill{display:inline-flex;align-items:center;gap:3px;padding:2px 6px;border-radius:8px;font-size:9px;font-weight:600}
 .color-dot{width:8px;height:8px;border-radius:50%;display:inline-block;flex-shrink:0}
 .mainz-pane{flex:1;display:flex;flex-direction:column;overflow:hidden;padding:14px}
 .mainz-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-top:12px}
-.mainz-day-col{background:#fff;border:1px solid #DDB20022;border-radius:8px;overflow:hidden}
-.mainz-day-head{background:#FAFAF7;padding:8px 10px;font-size:11px;font-weight:700;color:#DDB200;border-bottom:1px solid #e5e5e3;text-align:center}
+.mainz-day-col{background:#fff;border:1px solid #DDB20044;border-radius:8px;overflow:hidden}
+.mainz-day-head{background:#DDB20020;padding:8px 10px;font-size:11px;font-weight:700;color:#DDB200;border-bottom:1px solid #DDB20033;text-align:center}
+.mainz-day-count{font-size:9px;font-weight:400;color:#aaa;margin-left:4px}
 .mainz-day-body{padding:8px;display:flex;flex-direction:column;gap:5px;min-height:120px}
 .mainz-person-card{background:#FDF5CC;border:1px solid #DDB20088;border-radius:5px;padding:5px 7px;font-size:11px;font-weight:600;color:#7A6300;display:flex;align-items:center;justify-content:space-between}
 .mainz-remove{background:transparent;border:none;cursor:pointer;color:#aaa;font-size:13px;line-height:1}
 .mainz-remove:hover{color:#D85A30}
-.mainz-add-btn{border:1px dashed #ccc;border-radius:5px;padding:5px;font-size:10px;color:#aaa;cursor:pointer;background:transparent;text-align:center;width:100%}
-.mainz-add-btn:hover{border-color:#DDB200;color:#DDB200}
-.modal-wrap{position:fixed;inset:0;background:rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;z-index:200}
-.modal{background:#fff;border:1px solid #DDB20022;border-radius:12px;padding:1.25rem;width:340px;max-width:92vw;max-height:88vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,0.12)}
+.mainz-add-btn{border:1px dashed #DDB20066;border-radius:5px;padding:5px;font-size:10px;color:#aaa;cursor:pointer;background:transparent;text-align:center;width:100%}
+.mainz-add-btn:hover{border-color:#DDB200;color:#7A6300}
+.modal-wrap{position:fixed;inset:0;background:rgba(0,0,0,0.28);display:flex;align-items:center;justify-content:center;z-index:200}
+.modal{background:#FFFEF5;border:1px solid #DDB20055;border-radius:12px;padding:1.25rem;width:340px;max-width:92vw;max-height:88vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,0.12)}
 .modal-title{font-size:14px;font-weight:600;margin-bottom:14px}
 .mrow{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #f0f0ee;font-size:11px;align-items:flex-start}
 .mrow:last-of-type{border:none}
 .mlabel{color:#888;flex-shrink:0;padding-top:1px}
-.mval{font-weight:500;display:flex;align-items:center;gap:4px;flex-wrap:wrap;justify-content:flex-end;text-align:right}
+.mval{font-weight:500;display:flex;align-items:center;gap:4px;flex-wrap:wrap;justify-content:flex-end}
 .notiz-box{border-radius:6px;padding:7px 9px;font-size:10px;margin-top:7px}
 .notiz-t{font-weight:600;margin-bottom:2px}
-.mbtn{padding:6px 11px;font-size:11px;border-radius:6px;border:1px solid #ddd;cursor:pointer;background:#FAFAF7;color:#1a1a1a;margin-right:5px;margin-top:10px;font-weight:500}
-.mbtn.grn{border-color:#DDB200;color:#7A6300;background:#FDF5CC}
+.mbtn{padding:6px 11px;font-size:11px;border-radius:6px;border:1px solid #ddd;cursor:pointer;background:#f5f5f3;color:#1a1a1a;margin-right:5px;margin-top:10px;font-weight:500}
+.mbtn.grn{border-color:#639922;color:#27500A;background:#EAF3DE}
 .mbtn.red{border-color:#D85A30;color:#712B13;background:#FAECE7}
+.mbtn.gold{border-color:#DDB200;color:#7A6300;background:#FDF5CC}
 .form-row{display:flex;flex-direction:column;gap:3px;margin-bottom:10px}
 .form-row label{font-size:10px;color:#888;font-weight:500}
 .form-row input,.form-row select{font-size:11px;padding:6px 8px;border:1px solid #ddd;border-radius:6px;background:#fff;color:#1a1a1a;width:100%;outline:none}
@@ -123,11 +155,22 @@ tr:hover td{background:#FAFAF3}
 .day-checks{display:flex;gap:6px;flex-wrap:wrap}
 .day-checks label{font-size:10px;display:flex;align-items:center;gap:2px;cursor:pointer}
 .day-checks input{accent-color:#DDB200}
-.warn-box{background:#FDF5CC;border:1px solid #EF9F27;border-radius:6px;padding:7px 9px;font-size:10px;color:#633806;margin-top:7px}
+.warn-box{background:#FAEEDA;border:1px solid #EF9F27;border-radius:6px;padding:7px 9px;font-size:10px;color:#633806;margin-top:7px}
 .warn-t{font-weight:600;margin-bottom:2px}
+.status-select{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
+.status-opt{padding:5px 10px;font-size:11px;border-radius:6px;border:1px solid #ddd;cursor:pointer;background:#fff;color:#666;font-weight:500}
+.status-opt.active-ho{background:#E6F1FB;border-color:#4A8BC4;color:#185FA5}
+.status-opt.active-ab{background:#f5f5f3;border-color:#aaa;color:#555}
 .toast{position:fixed;bottom:16px;right:16px;background:#7A6300;color:#FDF5CC;font-size:11px;font-weight:500;padding:8px 14px;border-radius:8px;z-index:300;opacity:0;transition:opacity 0.2s;pointer-events:none}
 .toast.show{opacity:1}
 .toast.err{background:#712B13}
+@media print{
+  .sidebar,.who-panel,.top-tabs,.topbar,.legend,.sb-toggle{display:none!important}
+  .floor-wrap{display:block}
+  .floor-area{overflow:visible;padding:0}
+  .platz{break-inside:avoid}
+  body{background:#fff}
+}
 </style>
 </head>
 <body>
@@ -138,6 +181,10 @@ tr:hover td{background:#FAFAF3}
     <div class="top-tab" onclick="showTopTab('geraete',this)">Geräte</div>
     <div class="top-tab" onclick="showTopTab('projekte',this)">Projekte</div>
     <div class="top-tab" onclick="showTopTab('mainz',this)">Mainz</div>
+    <div class="date-badge">
+      <span id="date-display"></span>
+      <span class="kw" id="kw-display"></span>
+    </div>
   </div>
   <div id="tab-sitzplan" class="tab-content active">
     <div class="sidebar" id="sidebar">
@@ -158,19 +205,30 @@ tr:hover td{background:#FAFAF3}
     <div class="main">
       <div class="topbar">
         <span style="font-size:10px;color:#888">Tag:</span>
-        <button class="day-btn active" onclick="setDay('Mo',this)">Mo</button>
-        <button class="day-btn" onclick="setDay('Di',this)">Di</button>
-        <button class="day-btn" onclick="setDay('Mi',this)">Mi</button>
-        <button class="day-btn" onclick="setDay('Do',this)">Do</button>
-        <button class="day-btn" onclick="setDay('Fr',this)">Fr</button>
-        <button class="auto-btn" onclick="autoAssign()">&#9889; Auto-Zuweisung</button>
+        <button class="day-btn" id="btn-Mo" onclick="setDay('Mo',this)">Mo</button>
+        <button class="day-btn" id="btn-Di" onclick="setDay('Di',this)">Di</button>
+        <button class="day-btn" id="btn-Mi" onclick="setDay('Mi',this)">Mi</button>
+        <button class="day-btn" id="btn-Do" onclick="setDay('Do',this)">Do</button>
+        <button class="day-btn" id="btn-Fr" onclick="setDay('Fr',this)">Fr</button>
+        <button class="auto-btn" onclick="autoAssign()">⚡ Auto-Zuweisung</button>
+        <button class="print-btn" onclick="printSitzplan()">🖨 PDF</button>
       </div>
-      <div class="floor-area" id="floor-area"><div style="display:flex;align-items:center;gap:8px;padding:20px;color:#aaa"><div class="spinner"></div>Wird geladen…</div></div>
-      <div class="legend">
-        <div class="leg-item"><div class="leg-dot" style="background:#EAF3DE"></div>Fester Platz</div>
-        <div class="leg-item"><div class="leg-dot" style="background:#E6F1FB"></div>Gebucht</div>
+      <div class="floor-wrap">
+        <div class="floor-area" id="floor-area"><div style="display:flex;align-items:center;gap:8px;padding:20px;color:#aaa"><div class="spinner"></div>Wird geladen…</div></div>
+        <div class="who-panel" id="who-panel">
+          <div class="who-header">
+            <div class="who-title">Heute im Büro</div>
+            <div class="who-date" id="who-date"></div>
+          </div>
+          <div class="who-body" id="who-body"></div>
+        </div>
+      </div>
+      <div class="legend" id="legend-bar">
+        <div class="leg-item"><div class="leg-dot" style="background:#EAF3DE;border:1px solid #C0DD97"></div>Fester Platz</div>
+        <div class="leg-item"><div class="leg-dot" style="background:#E6F1FB;border:1px solid #93C5E8"></div>Gebucht</div>
         <div class="leg-item"><div class="leg-dot" style="background:#fff;border:1px solid #ddd"></div>Frei</div>
-        <div class="leg-item"><div class="leg-dot" style="background:#FAFAF7"></div>Gesperrt</div>
+        <div class="leg-item"><div class="leg-dot" style="background:#FAFAF7;border:1px solid #ddd"></div>Gesperrt</div>
+        <span id="proj-legend"></span>
       </div>
     </div>
   </div>
@@ -207,14 +265,43 @@ tr:hover td{background:#FAFAF3}
 const SUPA_URL='https://gepvyopwxclixwrfswjd.supabase.co';
 const SUPA_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdlcHZ5b3B3eGNsaXh3cmZzd2pkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc0NTc3NjYsImV4cCI6MjA5MzAzMzc2Nn0.sAeVdcGH0MZdpoVMXygH9XeNRwmWkMLUO4Yhmux9BTM';
 const sb=supabase.createClient(SUPA_URL,SUPA_KEY);
-function iMacSVG(s){s=s||14;return '<svg width="'+s+'" height="'+s+'" viewBox="0 0 16 16" style="flex-shrink:0"><rect x="1" y="2" width="14" height="10" rx="1.5" fill="none" stroke="#555" stroke-width="1.5"/><rect x="6" y="12" width="4" height="2" rx="0.5" fill="#555"/><rect x="4" y="14" width="8" height="1" rx="0.5" fill="#555"/></svg>';}
-function mbSVG(s){s=s||14;return '<svg width="'+s+'" height="'+s+'" viewBox="0 0 16 16" style="flex-shrink:0"><rect x="2" y="2" width="12" height="9" rx="1" fill="none" stroke="#555" stroke-width="1.5"/><rect x="1" y="11" width="14" height="2" rx="1" fill="#555"/></svg>';}
-function scSVG(s){s=s||14;return '<svg width="'+s+'" height="'+s+'" viewBox="0 0 16 16" style="flex-shrink:0"><rect x="2" y="1" width="12" height="9" rx="1" fill="none" stroke="#555" stroke-width="1.5"/><rect x="6" y="10" width="4" height="2" rx="0.5" fill="#555"/><rect x="4" y="12" width="8" height="1" rx="0.5" fill="#555"/></svg>';}
+
+function iMacSVG(s){s=s||13;return'<svg width="'+s+'" height="'+s+'" viewBox="0 0 16 16" style="flex-shrink:0"><rect x="1" y="2" width="14" height="10" rx="1.5" fill="none" stroke="#555" stroke-width="1.5"/><rect x="6" y="12" width="4" height="2" rx="0.5" fill="#555"/><rect x="4" y="14" width="8" height="1" rx="0.5" fill="#555"/></svg>';}
+function mbSVG(s){s=s||13;return'<svg width="'+s+'" height="'+s+'" viewBox="0 0 16 16" style="flex-shrink:0"><rect x="2" y="2" width="12" height="9" rx="1" fill="none" stroke="#555" stroke-width="1.5"/><rect x="1" y="11" width="14" height="2" rx="1" fill="#555"/></svg>';}
+function scSVG(s){s=s||13;return'<svg width="'+s+'" height="'+s+'" viewBox="0 0 16 16" style="flex-shrink:0"><rect x="2" y="1" width="12" height="9" rx="1" fill="none" stroke="#555" stroke-width="1.5"/><rect x="6" y="10" width="4" height="2" rx="0.5" fill="#555"/><rect x="4" y="12" width="8" height="1" rx="0.5" fill="#555"/></svg>';}
 function devIcon(typ,s){return typ==='iMac'?iMacSVG(s):typ==='MacBook'?mbSVG(s):scSVG(s);}
-let currentDay='Mo',sidebarOpen=true,dragData=null;
-let mitarbeitende=[],geraete=[],projekte=[],sperren=new Set(),buchungen={Mo:{},Di:{},Mi:{},Do:{},Fr:{}},mainzEintraege={Mo:[],Di:[],Mi:[],Do:[],Fr:[]};
-const projFarben=['#639922','#185FA5','#D85A30','#DDB200','#993556','#0F6E56','#534AB7'];
+
+// DATE HELPERS
 const DAYS=['Mo','Di','Mi','Do','Fr'];
+const DAY_MAP={1:'Mo',2:'Di',3:'Mi',4:'Do',5:'Fr'};
+function getToday(){const d=new Date();const dow=d.getDay();return DAY_MAP[dow]||'Mo';}
+function getKW(d){const date=d||new Date();const onejan=new Date(date.getFullYear(),0,1);return Math.ceil((((date-onejan)/86400000)+onejan.getDay()+1)/7);}
+function formatDate(d){const date=d||new Date();return date.toLocaleDateString('de-DE',{weekday:'long',day:'2-digit',month:'2-digit',year:'numeric'});}
+function getDateForDay(dayStr){
+  const today=new Date();const dow=today.getDay();
+  const dayIdx=DAYS.indexOf(dayStr);
+  const todayIdx=dow===0?4:dow===6?4:dow-1;
+  const diff=dayIdx-todayIdx;
+  const target=new Date(today);target.setDate(today.getDate()+diff);
+  return target;
+}
+function isoDate(d){return d.toISOString().split('T')[0];}
+
+function initDateDisplay(){
+  const today=new Date();
+  document.getElementById('date-display').textContent=formatDate(today);
+  document.getElementById('kw-display').textContent='KW '+getKW(today);
+  const todayStr=getToday();
+  document.querySelectorAll('.day-btn').forEach(b=>{
+    if(b.id==='btn-'+todayStr)b.classList.add('today-marker');
+  });
+}
+
+let currentDay=getToday();
+let sidebarOpen=true,dragData=null;
+let mitarbeitende=[],geraete=[],projekte=[],sperren=new Set(),buchungen={Mo:{},Di:{},Mi:{},Do:{},Fr:{}},mainzEintraege={Mo:[],Di:[],Mi:[],Do:[],Fr:[]},statusEintraege={};
+const projFarben=['#639922','#185FA5','#D85A30','#DDB200','#993556','#0F6E56','#534AB7'];
+
 const GRUPPEN=[
   {label:'Tischgruppe 1',plaetze:[[1,2],[3,4]],bereich:'oben'},
   {label:'Tischgruppe 2',plaetze:[[5,6],[7,8]],bereich:'oben'},
@@ -223,24 +310,22 @@ const GRUPPEN=[
   {label:'Tischgruppe 5',plaetze:[[17,18],[19,20]],bereich:'unten'},
   {label:'Tischgruppe 6',plaetze:[[21,22],[23,24]],bereich:'unten'},
 ];
+
 function getTGIdx(nr){return GRUPPEN.findIndex(g=>g.plaetze.flat().includes(nr));}
 function sharedProjects(a,b){return(a.projekte||[]).filter(p=>(b.projekte||[]).includes(p));}
 function isMacBookUser(ma){if(!ma)return false;const g=geraete.find(g=>g.id===ma.geraet);return g&&g.typ==='MacBook';}
-function hasScreenAtPlatz(nr){const g=geraete.find(g=>g.platz===nr);return g&&g.typ==='Bildschirm';}
+function hasScreenAtPlatz(nr){return geraete.some(g=>g.platz===nr&&g.typ==='Bildschirm');}
 function getPersonAmPlatz(nr){
   const fest=mitarbeitende.find(m=>m.platz===nr&&m.typ==='fest'&&(m.tage||[]).includes(currentDay));
   if(fest)return{...fest,quelle:'fest'};
   return buchungen[currentDay][nr]||null;
 }
-function getGeraetAmPlatz(nr){return geraete.find(g=>g.platz===nr)||null;}
+function getStatusForPerson(maId,day){
+  const key=maId+'_'+day;
+  return statusEintraege[key]||null;
+}
 function getMaProjekte(ma){return(ma.projekte||[]).map(id=>projekte.find(p=>p.id===id)).filter(Boolean);}
 function getNutzerVonGeraet(gId){const ms=mitarbeitende.filter(m=>m.geraet===gId);return ms.length?ms.map(m=>m.name).join(', '):'–';}
-function projPillsHTML(ids){return(ids||[]).map(id=>{const p=projekte.find(p=>p.id===id);if(!p)return'';return'<span class="proj-pill" style="background:'+p.farbe+'22;border:1px solid '+p.farbe+'55;color:'+p.farbe+'"><span class="color-dot" style="background:'+p.farbe+'"></span>'+p.name+'</span>';}).join('');}
-function projDotsHTML(ids){return(ids||[]).slice(0,4).map(id=>{const p=projekte.find(p=>p.id===id);return p?'<div class="proj-dot" style="background:'+p.farbe+'"></div>':'';}).join('');}
-function projCheckboxes(sel){return'<div class="check-list">'+projekte.map(p=>'<label><input type="checkbox" class="pj-cb" value="'+p.id+'" '+((sel||[]).includes(p.id)?'checked':'')+'><span class="color-dot" style="background:'+p.farbe+'"></span>'+p.name+'</label>').join('')+'</div>';}
-function imacCheckboxes(sel){const imacs=geraete.filter(g=>g.typ==='iMac');if(!imacs.length)return'<div style="font-size:10px;color:#aaa;padding:6px">Noch keine iMacs angelegt</div>';return'<div class="check-list">'+imacs.map(g=>'<label><input type="checkbox" class="imac-cb" value="'+g.id+'" '+((sel||[]).includes(g.id)?'checked':'')+'>'+iMacSVG(11)+' '+g.id+(g.platz?' (Platz '+g.platz+')':'')+'</label>').join('')+'</div>';}
-function getCheckedProjekte(){return Array.from(document.querySelectorAll('.pj-cb:checked')).map(i=>i.value);}
-function getCheckedImacs(){return Array.from(document.querySelectorAll('.imac-cb:checked')).map(i=>i.value);}
 function getTeamWarnung(ma,platzNr){
   const meineTG=getTGIdx(platzNr);
   const fernKollegen=mitarbeitende.filter(m=>{
@@ -254,9 +339,28 @@ function getTeamWarnung(ma,platzNr){
     return m.name+' ('+shared+')';
   });
 }
+
+function projPillsHTML(ids){return(ids||[]).map(id=>{const p=projekte.find(p=>p.id===id);if(!p)return'';return'<span class="proj-pill" style="background:'+p.farbe+'22;border:1px solid '+p.farbe+'55;color:'+p.farbe+'"><span class="color-dot" style="background:'+p.farbe+'"></span>'+p.name+'</span>';}).join('');}
+function projDotsHTML(ids){return(ids||[]).slice(0,4).map(id=>{const p=projekte.find(p=>p.id===id);return p?'<div class="proj-dot" style="background:'+p.farbe+'"></div>':'';}).join('');}
+function projCheckboxes(sel){return'<div class="check-list">'+projekte.map(p=>'<label><input type="checkbox" class="pj-cb" value="'+p.id+'" '+((sel||[]).includes(p.id)?'checked':'')+'><span class="color-dot" style="background:'+p.farbe+'"></span>'+p.name+'</label>').join('')+'</div>';}
+function imacCheckboxes(sel){const imacs=geraete.filter(g=>g.typ==='iMac');if(!imacs.length)return'<div style="font-size:10px;color:#aaa;padding:6px">Noch keine iMacs angelegt</div>';return'<div class="check-list">'+imacs.map(g=>'<label><input type="checkbox" class="imac-cb" value="'+g.id+'" '+((sel||[]).includes(g.id)?'checked':'')+'>'+iMacSVG(11)+' '+g.id+(g.platz?' (Platz '+g.platz+')':'')+'</label>').join('')+'</div>';}
+function getCheckedProjekte(){return Array.from(document.querySelectorAll('.pj-cb:checked')).map(i=>i.value);}
+function getCheckedImacs(){return Array.from(document.querySelectorAll('.imac-cb:checked')).map(i=>i.value);}
+
+// Clean old bookings
+async function cleanOldBuchungen(){
+  const today=new Date();today.setHours(0,0,0,0);
+  const todayIdx=today.getDay()===0?5:today.getDay()===6?5:today.getDay();
+  const monday=new Date(today);monday.setDate(today.getDate()-(todayIdx-1));
+  const mondayISO=isoDate(monday);
+  try{await sb.from('buchungen').delete().lt('created_at',mondayISO);}catch(e){}
+  try{await sb.from('status_eintraege').delete().lt('datum',isoDate(today));}catch(e){}
+}
+
 async function loadAll(){
   document.getElementById('loading-overlay').style.display='flex';
   try{
+    await cleanOldBuchungen();
     const [pR,gR,mR,sR,bR]=await Promise.all([
       sb.from('projekte').select('*'),
       sb.from('geraete').select('*'),
@@ -273,11 +377,17 @@ async function loadAll(){
       else if(b.buchungsname)buchungen[b.tag][b.platz]={name:b.buchungsname,quelle:'gebucht',buchungsname:b.buchungsname,projekte:[]};
     });
     mainzEintraege={Mo:[],Di:[],Mi:[],Do:[],Fr:[]};
-    try{const mzR=await sb.from('mainz').select('*');(mzR.data||[]).forEach(e=>{if(mainzEintraege[e.tag])mainzEintraege[e.tag].push(e);});}catch(ex){console.log('mainz table not ready yet');}
+    try{const mzR=await sb.from('mainz').select('*');(mzR.data||[]).forEach(e=>{if(mainzEintraege[e.tag])mainzEintraege[e.tag].push(e);});}catch(ex){}
+    statusEintraege={};
+    try{
+      const stR=await sb.from('status_eintraege').select('*');
+      (stR.data||[]).forEach(s=>{statusEintraege[s.mitarbeiter_id+'_'+s.tag]=s.status;});
+    }catch(ex){}
     renderAll();
   }catch(e){showToast('Ladefehler: '+e.message,true);}
   document.getElementById('loading-overlay').style.display='none';
 }
+
 function renderSidebar(){
   const maEl=document.getElementById('sma');if(!maEl)return;
   maEl.innerHTML='';
@@ -291,8 +401,7 @@ function renderSidebar(){
     card.addEventListener('dragend',()=>card.classList.remove('dragging'));
     maEl.appendChild(card);
   });
-  const devEl=document.getElementById('sdev');if(!devEl)return;
-  devEl.innerHTML='';
+  const devEl=document.getElementById('sdev');if(!devEl)return;devEl.innerHTML='';
   geraete.forEach(g=>{
     const card=document.createElement('div');card.className='sb-card';card.draggable=true;
     card.innerHTML='<div style="display:flex;align-items:center;gap:4px">'+devIcon(g.typ,10)+'<span class="sb-card-name">'+g.id+'</span></div><div class="sb-card-sub">'+g.typ+' · '+g.art+(g.platz?' · P'+g.platz:'')+'</div>';
@@ -301,6 +410,46 @@ function renderSidebar(){
     devEl.appendChild(card);
   });
 }
+
+function renderWhoPanel(){
+  const body=document.getElementById('who-body');if(!body)return;
+  const dateEl=document.getElementById('who-date');
+  const d=getDateForDay(currentDay);
+  if(dateEl)dateEl.textContent=d.toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit',year:'numeric'});
+  body.innerHTML='';
+  const imBuero=[],inMainz=[],homeoffice=[],abwesend=[];
+  mitarbeitende.forEach(m=>{
+    const status=getStatusForPerson(m.id,currentDay);
+    if(status==='abwesend'){abwesend.push(m);return;}
+    if(status==='homeoffice'){homeoffice.push(m);return;}
+    const inMainzToday=(mainzEintraege[currentDay]||[]).some(e=>e.name===m.name);
+    if(inMainzToday){inMainz.push(m);return;}
+    if((m.tage||[]).includes(currentDay)){imBuero.push(m);}
+  });
+  function addSection(label,arr,cssClass,labelHTML){
+    if(!arr.length)return;
+    const lbl=document.createElement('div');lbl.className='who-section-lbl';lbl.textContent=label+' ('+arr.length+')';body.appendChild(lbl);
+    arr.forEach(m=>{
+      const card=document.createElement('div');card.className='who-card '+cssClass;
+      card.innerHTML='<span class="who-name">'+m.name+'</span>'+labelHTML;
+      body.appendChild(card);
+    });
+  }
+  addSection('Im Büro',imBuero,'im-buero','<span class="who-label lbl-fest">DA</span>');
+  addSection('Mainz',inMainz,'in-mainz','<span class="who-label lbl-mainz">MZ</span>');
+  addSection('Homeoffice',homeoffice,'homeoffice','<span class="who-label lbl-ho">HO</span>');
+  addSection('Abwesend',abwesend,'abwesend','<span class="who-label lbl-ab">AB</span>');
+  if(!imBuero.length&&!inMainz.length&&!homeoffice.length&&!abwesend.length){
+    body.innerHTML='<div style="font-size:10px;color:#bbb;padding:8px 0">Keine Einträge für diesen Tag</div>';
+  }
+}
+
+function renderLegend(){
+  const el=document.getElementById('proj-legend');if(!el)return;
+  if(!projekte.length){el.innerHTML='';return;}
+  el.innerHTML='<span style="color:#ccc;margin:0 4px">|</span>'+projekte.map(p=>'<span class="leg-item"><span class="proj-dot" style="background:'+p.farbe+';width:9px;height:9px;border-radius:50%;display:inline-block"></span>'+p.name+'</span>').join('');
+}
+
 function renderFloor(){
   const area=document.getElementById('floor-area');if(!area)return;
   area.innerHTML='';
@@ -321,20 +470,24 @@ function renderFloor(){
     sec.appendChild(tg);area.appendChild(sec);
   });
 }
+
 function buildPlatz(nr){
   const p=document.createElement('div');p.className='platz';
   const gesperrt=sperren.has(nr);
   const person=gesperrt?null:getPersonAmPlatz(nr);
-  const geraet=getGeraetAmPlatz(nr);
+  const alleGeraeteAmPlatz=geraete.filter(g=>g.platz===nr);
+  const hauptGeraet=alleGeraeteAmPlatz.find(g=>g.typ==='iMac'||g.typ==='MacBook');
+  const screenGeraet=alleGeraeteAmPlatz.find(g=>g.typ==='Bildschirm');
   const numEl=document.createElement('div');numEl.className='platz-num';numEl.textContent=nr;p.appendChild(numEl);
   const gz=document.createElement('div');gz.className='platz-geraet-zone';
-  if(geraet){gz.innerHTML=devIcon(geraet.typ,14)+'<span class="platz-geraet-id">'+geraet.id+'</span>';}
-  else{gz.innerHTML='<span class="platz-geraet-leer">kein Gerät</span>';}
+  const leftHTML=hauptGeraet?devIcon(hauptGeraet.typ,13)+'<span class="platz-geraet-id">'+hauptGeraet.id+'</span>':'<span class="platz-geraet-leer">kein Gerät</span>';
+  const rightHTML=screenGeraet?scSVG(12)+'<span style="font-size:9px;color:#888">'+screenGeraet.id+'</span>':'';
+  gz.innerHTML='<div class="platz-geraet-left">'+leftHTML+'</div>'+(rightHTML?'<div class="platz-screen-id">'+rightHTML+'</div>':'');
   p.appendChild(gz);
   if(gesperrt){
     p.classList.add('gesperrt');
     const pz=document.createElement('div');pz.className='platz-person-zone';
-    pz.innerHTML='<svg viewBox="0 0 100 60" style="width:60px;opacity:0.15"><line x1="5" y1="5" x2="95" y2="55" stroke="#888" stroke-width="3"/><line x1="95" y1="5" x2="5" y2="55" stroke="#888" stroke-width="3"/></svg><div style="font-size:9px;color:#bbb;margin-top:2px">Ablage</div>';
+    pz.innerHTML='<svg viewBox="0 0 100 60" style="width:55px;opacity:0.12"><line x1="5" y1="5" x2="95" y2="55" stroke="#888" stroke-width="3"/><line x1="95" y1="5" x2="5" y2="55" stroke="#888" stroke-width="3"/></svg><div style="font-size:9px;color:#ccc;margin-top:2px">Ablage</div>';
     p.appendChild(pz);p.onclick=()=>openAblagePop(nr);return p;
   }
   setupDrop(p,nr);
@@ -344,36 +497,30 @@ function buildPlatz(nr){
     const ids=person.projekte||[];
     if(ids.length){const dots=document.createElement('div');dots.className='proj-dots';dots.innerHTML=projDotsHTML(ids);p.appendChild(dots);}
     const ne=document.createElement('div');ne.className='platz-name';ne.textContent=person.name;pz.appendChild(ne);
+    const status=person.id?getStatusForPerson(person.id,currentDay):null;
+    if(status){const sb2=document.createElement('div');sb2.className='platz-status-badge';sb2.style.cssText=status==='homeoffice'?'background:#E6F1FB;color:#185FA5':'background:#f5f5f3;color:#aaa';sb2.textContent=status==='homeoffice'?'Homeoffice':'Abwesend';pz.appendChild(sb2);}
     p.appendChild(pz);
-    // Make occupied platz draggable too
-    p.draggable=true;
-    let dragStarted=false;
-    p.addEventListener('dragstart',e=>{
-      dragStarted=true;
-      const ma=mitarbeitende.find(m=>m.id===person.id);
-      if(ma){dragData={type:'person',id:ma.id};}
-      else{dragData={type:'named',name:person.name,platz:nr};}
-      e.dataTransfer.effectAllowed='move';
-      p.style.opacity='0.5';
-    });
-    p.addEventListener('dragend',()=>{p.style.opacity='1';setTimeout(()=>{dragStarted=false;},100);});
-    p.onclick=()=>{if(!dragStarted)openPlatzPop(nr,person,geraet);};
+    p.draggable=true;let _ds=false;
+    p.addEventListener('dragstart',e=>{_ds=true;const ma=mitarbeitende.find(m=>m.id===person.id);dragData=ma?{type:'person',id:ma.id}:{type:'named',name:person.name,platz:nr};e.dataTransfer.effectAllowed='move';p.style.opacity='0.5';});
+    p.addEventListener('dragend',()=>{p.style.opacity='1';setTimeout(()=>_ds=false,100);});
+    p.onclick=()=>{if(!_ds)openPlatzPop(nr,person,hauptGeraet||screenGeraet||null);};
   } else {
     const fl=document.createElement('div');fl.className='platz-frei';fl.textContent='frei';pz.appendChild(fl);
-    p.appendChild(pz);p.onclick=()=>openFreiPop(nr,geraet);
+    p.appendChild(pz);p.onclick=()=>openFreiPop(nr,hauptGeraet||screenGeraet||null);
   }
   return p;
 }
+
 function setupDrop(el,nr){
   el.addEventListener('dragover',e=>{e.preventDefault();el.classList.add('over');});
   el.addEventListener('dragleave',()=>el.classList.remove('over'));
   el.addEventListener('drop',e=>{e.preventDefault();el.classList.remove('over');handleDrop(nr);});
 }
+
 async function handleDrop(nr){
   if(!dragData)return;
   if(sperren.has(nr)){showToast('Platz ist gesperrt');return;}
   if(dragData.type==='named'){
-    // Remove from old platz, add to new
     await sb.from('buchungen').delete().eq('platz',dragData.platz).eq('tag',currentDay);
     await sb.from('buchungen').insert({platz:nr,tag:currentDay,buchungsname:dragData.name});
     showToast(dragData.name+' → Platz '+nr);dragData=null;await loadAll();return;
@@ -382,8 +529,7 @@ async function handleDrop(nr){
     const ma=mitarbeitende.find(m=>m.id===dragData.id);if(!ma)return;
     if(!(ma.tage||[]).includes(currentDay)){showToast(ma.name+' ist '+currentDay+' nicht da');return;}
     if(isMacBookUser(ma)&&ma.typ==='flex'&&!hasScreenAtPlatz(nr)){showToast(ma.name+' braucht einen Platz mit Bildschirm');return;}
-    const belegt=getPersonAmPlatz(nr);
-    if(belegt&&belegt.id!==ma.id){showToast('Platz '+nr+' ist bereits belegt');return;}
+    const belegt=getPersonAmPlatz(nr);if(belegt&&belegt.id!==ma.id){showToast('Platz '+nr+' ist bereits belegt');return;}
     if(ma.typ==='fest'){const{error}=await sb.from('mitarbeitende').update({platz:nr}).eq('id',ma.id);if(error){showToast('Fehler: '+error.message,true);return;}}
     else{await sb.from('buchungen').delete().eq('platz',nr).eq('tag',currentDay);const{error}=await sb.from('buchungen').insert({platz:nr,tag:currentDay,mitarbeiter_id:ma.id,buchungsname:ma.name});if(error){showToast('Fehler: '+error.message,true);return;}}
     showToast(ma.name+' → Platz '+nr);
@@ -393,36 +539,42 @@ async function handleDrop(nr){
   }
   dragData=null;await loadAll();
 }
+
 async function autoAssign(){
   const flex=mitarbeitende.filter(m=>m.typ==='flex'&&(m.tage||[]).includes(currentDay)&&!Object.values(buchungen[currentDay]||{}).find(b=>b.id===m.id));
   const belegt=new Set();
   mitarbeitende.filter(m=>m.platz&&m.typ==='fest'&&(m.tage||[]).includes(currentDay)).forEach(m=>belegt.add(m.platz));
   Object.keys(buchungen[currentDay]||{}).forEach(k=>belegt.add(parseInt(k)));
-  const freie=[];
-  for(let i=1;i<=24;i++){if(!sperren.has(i)&&!belegt.has(i)){const g=getGeraetAmPlatz(i);freie.push({nr:i,geraet:g,tgIdx:getTGIdx(i)});}}
+  const freie=[];for(let i=1;i<=24;i++){if(!sperren.has(i)&&!belegt.has(i)){const g=geraete.filter(gg=>gg.platz===i);freie.push({nr:i,geraete:g,tgIdx:getTGIdx(i)});}}
   const sorted=[...flex].sort((a,b)=>(b.tage||[]).length-(a.tage||[]).length);
-  function getTeamTG(ma){
-    const koll=mitarbeitende.filter(m=>m.id!==ma.id&&sharedProjects(ma,m).length>0&&(m.tage||[]).includes(currentDay)&&m.platz);
-    if(!koll.length)return null;
-    const cnt={};koll.forEach(k=>{const tg=getTGIdx(k.platz);cnt[tg]=(cnt[tg]||0)+1;});
-    return parseInt(Object.entries(cnt).sort((a,b)=>b[1]-a[1])[0][0]);
-  }
+  function getTeamTG(ma){const koll=mitarbeitende.filter(m=>m.id!==ma.id&&sharedProjects(ma,m).length>0&&(m.tage||[]).includes(currentDay)&&m.platz);if(!koll.length)return null;const cnt={};koll.forEach(k=>{const tg=getTGIdx(k.platz);cnt[tg]=(cnt[tg]||0)+1;});return parseInt(Object.entries(cnt).sort((a,b)=>b[1]-a[1])[0][0]);}
   const inserts=[];const neu=[];const vergebene=new Set();
   sorted.forEach(ma=>{
     const maIsMac=isMacBookUser(ma);const teamTG=getTeamTG(ma);
-    let kandidaten=freie.filter(f=>!vergebene.has(f.nr)&&(maIsMac?(f.geraet&&f.geraet.typ==='Bildschirm'):true));
+    let kandidaten=freie.filter(f=>!vergebene.has(f.nr)&&(maIsMac?f.geraete.some(g=>g.typ==='Bildschirm'):true));
     if(teamTG!==null&&teamTG!==undefined){kandidaten=kandidaten.sort((a,b)=>Math.abs(a.tgIdx-teamTG)-Math.abs(b.tgIdx-teamTG));}
     if(!kandidaten.length)return;
     const zi=kandidaten[0].nr;vergebene.add(zi);
-    inserts.push({platz:zi,tag:currentDay,mitarbeiter_id:ma.id,buchungsname:ma.name});
-    neu.push(ma.name+'→'+zi);
+    inserts.push({platz:zi,tag:currentDay,mitarbeiter_id:ma.id,buchungsname:ma.name});neu.push(ma.name+'→'+zi);
   });
   if(inserts.length){
     await sb.from('buchungen').delete().in('platz',inserts.map(i=>i.platz)).eq('tag',currentDay);
-    await sb.from('buchungen').insert(inserts);
-    showToast('Auto: '+neu.join(' | '));await loadAll();
+    await sb.from('buchungen').insert(inserts);showToast('Auto: '+neu.join(' | '));await loadAll();
   } else showToast('Alle bereits platziert');
 }
+
+function printSitzplan(){
+  const d=getDateForDay(currentDay);
+  const dateStr=d.toLocaleDateString('de-DE',{weekday:'long',day:'2-digit',month:'2-digit',year:'numeric'});
+  const title=document.createElement('div');
+  title.style.cssText='font-size:18px;font-weight:600;color:#DDB200;padding:12px 14px 4px;font-family:-apple-system,sans-serif';
+  title.textContent='prosa Sitzplan – '+dateStr+' (KW '+getKW(d)+')';
+  const area=document.getElementById('floor-area');
+  area.insertBefore(title,area.firstChild);
+  window.print();
+  setTimeout(()=>area.removeChild(title),500);
+}
+
 function renderMaTable(){
   const tb=document.getElementById('ma-tbody');if(!tb)return;
   if(!mitarbeitende.length){tb.innerHTML='<tr><td colspan="10" style="text-align:center;padding:20px;color:#aaa">Noch keine Mitarbeitenden</td></tr>';return;}
@@ -430,20 +582,35 @@ function renderMaTable(){
   mitarbeitende.forEach(m=>{
     const gObj=geraete.find(g=>g.id===m.geraet);
     const tr=document.createElement('tr');
-    tr.innerHTML='<td style="font-weight:600">'+m.name+'</td><td><span class="badge '+(m.typ==='fest'?'b-fest':'b-flex')+'">'+(m.typ==='fest'?'Fest':'Flex')+'</span></td><td>'+(m.platz?'Platz '+m.platz:'–')+'</td><td><div style="display:flex;align-items:center;gap:4px">'+(gObj?devIcon(gObj.typ,11):'')+(m.geraet||'–')+'</div></td><td style="font-size:10px;color:#888">'+(m.imac_logins||[]).join(', ')+'</td><td>'+(m.tage||[]).join(', ')+'</td><td style="font-size:10px;color:#7A6300">'+(m.mainz_tage&&m.mainz_tage.length?m.mainz_tage.join(', '):'–')+'</td><td><div class="proj-pills">'+projPillsHTML(m.projekte)+'</div></td><td style="color:#888;font-size:10px">'+(m.einschraenkung||'–')+'</td><td style="white-space:nowrap"><button class="edit-btn" onclick="openEditPerson('+m.id+')">Bearbeiten</button> <button class="del-btn" onclick="deletePerson('+m.id+')">✕</button></td>';
+    tr.innerHTML='<td style="font-weight:600">'+m.name+'</td>'
+      +'<td><span class="badge '+(m.typ==='fest'?'b-fest':'b-flex')+'">'+(m.typ==='fest'?'Fest':'Flex')+'</span></td>'
+      +'<td>'+(m.platz?'Platz '+m.platz:'–')+'</td>'
+      +'<td><div style="display:flex;align-items:center;gap:4px">'+(gObj?devIcon(gObj.typ,11):'')+(m.geraet||'–')+'</div></td>'
+      +'<td style="font-size:10px;color:#888">'+(m.imac_logins||[]).join(', ')||'–'+'</td>'
+      +'<td>'+(m.tage||[]).join(', ')+'</td>'
+      +'<td style="font-size:10px;color:#7A6300">'+(m.mainz_tage&&m.mainz_tage.length?m.mainz_tage.join(', '):'–')+'</td>'
+      +'<td><div class="proj-pills">'+projPillsHTML(m.projekte)+'</div></td>'
+      +'<td style="color:#888;font-size:10px">'+(m.einschraenkung||'–')+'</td>'
+      +'<td style="white-space:nowrap"><button class="edit-btn" onclick="openEditPerson('+m.id+')">Bearbeiten</button> <button class="del-btn" onclick="deletePerson('+m.id+')">✕</button></td>';
     tb.appendChild(tr);
   });
 }
+
 function renderDevTable(){
   const tb=document.getElementById('dev-tbody');if(!tb)return;
   if(!geraete.length){tb.innerHTML='<tr><td colspan="6" style="text-align:center;padding:20px;color:#aaa">Noch keine Geräte</td></tr>';return;}
   tb.innerHTML='';
   geraete.forEach(g=>{
     const tr=document.createElement('tr');
-    tr.innerHTML='<td><div style="display:flex;align-items:center;gap:5px;font-weight:600">'+devIcon(g.typ,11)+g.id+'</div></td><td>'+g.typ+'</td><td>'+(g.platz?'Platz '+g.platz:'–')+'</td><td><span class="badge b-'+g.art+'">'+g.art+'</span></td><td>'+getNutzerVonGeraet(g.id)+'</td><td style="white-space:nowrap"><button class="edit-btn" onclick="openEditGeraet(\''+g.id+'\')">Bearbeiten</button> <button class="del-btn" onclick="deleteGeraet(\''+g.id+'\')">✕</button></td>';
+    tr.innerHTML='<td><div style="display:flex;align-items:center;gap:5px;font-weight:600">'+devIcon(g.typ,11)+g.id+'</div></td>'
+      +'<td>'+g.typ+'</td><td>'+(g.platz?'Platz '+g.platz:'–')+'</td>'
+      +'<td><span class="badge b-'+g.art+'">'+g.art+'</span></td>'
+      +'<td>'+getNutzerVonGeraet(g.id)+'</td>'
+      +'<td style="white-space:nowrap"><button class="edit-btn" onclick="openEditGeraet(\''+g.id+'\')">Bearbeiten</button> <button class="del-btn" onclick="deleteGeraet(\''+g.id+'\')">✕</button></td>';
     tb.appendChild(tr);
   });
 }
+
 function renderProjTable(){
   const tb=document.getElementById('proj-tbody');if(!tb)return;
   if(!projekte.length){tb.innerHTML='<tr><td colspan="5" style="text-align:center;padding:20px;color:#aaa">Noch keine Projekte</td></tr>';return;}
@@ -451,18 +618,24 @@ function renderProjTable(){
   projekte.forEach(p=>{
     const mas=mitarbeitende.filter(m=>(m.projekte||[]).includes(p.id)).map(m=>m.name).join(', ');
     const tr=document.createElement('tr');
-    tr.innerHTML='<td><span style="display:inline-block;width:16px;height:16px;border-radius:4px;background:'+p.farbe+'"></span></td><td style="font-weight:600">'+p.name+'</td><td style="font-size:10px;color:#888">'+(mas||'–')+'</td><td style="font-size:10px;color:#888">'+(p.beschreibung||'–')+'</td><td style="white-space:nowrap"><button class="edit-btn" onclick="openEditProjekt(\''+p.id+'\')">Bearbeiten</button> <button class="del-btn" onclick="deleteProjekt(\''+p.id+'\')">✕</button></td>';
+    tr.innerHTML='<td><span style="display:inline-block;width:16px;height:16px;border-radius:4px;background:'+p.farbe+'"></span></td>'
+      +'<td style="font-weight:600">'+p.name+'</td>'
+      +'<td style="font-size:10px;color:#888">'+(mas||'–')+'</td>'
+      +'<td style="font-size:10px;color:#888">'+(p.beschreibung||'–')+'</td>'
+      +'<td style="white-space:nowrap"><button class="edit-btn" onclick="openEditProjekt(\''+p.id+'\')">Bearbeiten</button> <button class="del-btn" onclick="deleteProjekt(\''+p.id+'\')">✕</button></td>';
     tb.appendChild(tr);
   });
 }
+
 function renderMainz(){
   const grid=document.getElementById('mainz-grid');if(!grid)return;
   grid.innerHTML='';
   DAYS.forEach(day=>{
+    const entries=mainzEintraege[day]||[];
     const col=document.createElement('div');col.className='mainz-day-col';
-    col.innerHTML='<div class="mainz-day-head">'+day+'</div>';
+    col.innerHTML='<div class="mainz-day-head">'+day+'<span class="mainz-day-count">'+entries.length+' Person'+(entries.length!==1?'en':'')+'</span></div>';
     const body=document.createElement('div');body.className='mainz-day-body';
-    (mainzEintraege[day]||[]).forEach(e=>{
+    entries.forEach(e=>{
       const card=document.createElement('div');card.className='mainz-person-card';
       card.innerHTML='<span>'+e.name+'</span><button class="mainz-remove" onclick="removeMainz('+e.id+')">✕</button>';
       body.appendChild(card);
@@ -472,33 +645,61 @@ function renderMainz(){
     col.appendChild(body);grid.appendChild(col);
   });
 }
+
 function openAddMainz(day){
-  showModal('<div class="modal-title">Person in Mainz – '+day+'</div><div class="form-row"><label>Person auswählen</label><select id="mainz-sel" onchange="document.getElementById(\'mainz-custom-row\').style.display=this.value===\'__custom\'?\'flex\':\'none\'"><option value="">– wählen –</option>'+mitarbeitende.map(m=>'<option value="'+m.name+'">'+m.name+'</option>').join('')+'<option value="__custom">Anderen Namen eingeben…</option></select></div><div class="form-row" id="mainz-custom-row" style="display:none"><label>Name</label><input id="mainz-custom" type="text" placeholder="Name eingeben"></div><div><button class="mbtn grn" onclick="saveMainz(\''+day+'\')">Eintragen</button><button class="mbtn" onclick="closeModal()">Abbrechen</button></div>');
+  showModal('<div class="modal-title">Person in Mainz – '+day+'</div>'
+    +'<div class="form-row"><label>Person auswählen</label>'
+    +'<select id="mainz-sel"><option value="">– wählen –</option>'
+    +mitarbeitende.map(m=>'<option value="'+m.name+'">'+m.name+'</option>').join('')
+    +'</select></div>'
+    +'<div><button class="mbtn grn" onclick="saveMainz(\''+day+'\')">Eintragen</button><button class="mbtn" onclick="closeModal()">Abbrechen</button></div>');
 }
+
 async function saveMainz(day){
-  const sel=document.getElementById('mainz-sel').value;
-  const name=sel==='__custom'?document.getElementById('mainz-custom').value.trim():sel;
-  if(!name){showToast('Name erforderlich',true);return;}
+  const name=document.getElementById('mainz-sel').value;
+  if(!name){showToast('Person auswählen',true);return;}
+  if((mainzEintraege[day]||[]).some(e=>e.name===name)){showToast(name+' ist bereits eingetragen',true);return;}
   const{error}=await sb.from('mainz').insert({name,tag:day});
   if(error){showToast('Fehler: '+error.message,true);return;}
   closeModal();showToast(name+' → Mainz '+day);await loadAll();
 }
+
 async function removeMainz(id){await sb.from('mainz').delete().eq('id',id);await loadAll();}
+
 function openPlatzPop(nr,person,geraet){
   const ma=mitarbeitende.find(m=>m.id===person.id)||person;
   const projs=getMaProjekte(ma);
   const warnungen=ma.platz?getTeamWarnung(ma,nr):null;
+  const status=ma.id?getStatusForPerson(ma.id,currentDay):null;
   showModal('<div class="modal-title">Platz '+nr+' – '+ma.name+'</div>'
     +'<div class="mrow"><span class="mlabel">Status</span><span class="mval"><span class="badge '+(ma.quelle==='fest'?'b-fest':'b-flex')+'">'+(ma.quelle==='fest'?'Fester Platz':'Gebucht')+'</span></span></div>'
     +'<div class="mrow"><span class="mlabel">Gerät</span><span class="mval">'+(geraet?devIcon(geraet.typ,11)+' '+geraet.typ+' – '+geraet.id:'–')+'</span></div>'
     +'<div class="mrow"><span class="mlabel">Projekte</span><span class="mval"><div class="proj-pills">'+projPillsHTML(ma.projekte)+'</div></span></div>'
     +'<div class="mrow"><span class="mlabel">Bürotage</span><span class="mval">'+((ma.tage||[]).join(', ')||'–')+'</span></div>'
-    +(ma.einschraenkung?'<div class="notiz-box" style="background:#FDF5CC;border:1px solid #EF9F27;color:#633806"><div class="notiz-t">Einschränkung</div>'+ma.einschraenkung+'</div>':'')
+    +(ma.id?'<div class="mrow"><span class="mlabel">Anwesenheit heute</span><span class="mval"><div class="status-select">'
+      +'<div class="status-opt'+(status==='homeoffice'?' active-ho':'')+'" onclick="setStatus('+ma.id+',\'homeoffice\',\''+nr+'\')">🏠 Homeoffice</div>'
+      +'<div class="status-opt'+(status==='abwesend'?' active-ab':'')+'" onclick="setStatus('+ma.id+',\'abwesend\',\''+nr+'\')">✗ Abwesend</div>'
+      +(status?'<div class="status-opt" onclick="setStatus('+ma.id+',null,\''+nr+'\')">↺ Reset</div>':'')
+      +'</div></span></div>':'')
+    +(ma.einschraenkung?'<div class="notiz-box" style="background:#FAEEDA;border:1px solid #EF9F27;color:#633806"><div class="notiz-t">Einschränkung</div>'+ma.einschraenkung+'</div>':'')
     +(projs.length?'<div class="notiz-box" style="background:#E6F1FB;border:1px solid #378ADD;color:#042C53"><div class="notiz-t">Projektabhängigkeiten</div>'+projs.map(p=>p.name+(p.beschreibung?' – '+p.beschreibung:'')).join('<br>')+'</div>':'')
-    +(warnungen&&warnungen.length?'<div class="warn-box"><div class="warn-t">⚠ Weit entfernt vom Team</div>'+ma.name+' sitzt weiter weg als eine Tischgruppe von: '+warnungen.join(', ')+'</div>':'')
+    +(warnungen&&warnungen.length?'<div class="warn-box"><div class="warn-t">⚠ Weit entfernt vom Team</div>'+ma.name+' sitzt weiter als eine Tischgruppe von: '+warnungen.join(', ')+'</div>':'')
     +'<div><button class="mbtn red" onclick="entfernen('+nr+')">Von Platz entfernen</button><button class="mbtn" onclick="closeModal()">Schließen</button></div>');
 }
-function openAblagePop(nr){showModal('<div class="modal-title">Platz '+nr+' – Ablage (gesperrt)</div><p style="font-size:11px;color:#888;margin:8px 0">Dieser Platz ist als Ablage gesperrt.</p><div><button class="mbtn grn" onclick="freischalten('+nr+')">Freischalten</button><button class="mbtn" onclick="closeModal()">Schließen</button></div>');}
+
+async function setStatus(maId,status,nr){
+  try{
+    await sb.from('status_eintraege').delete().eq('mitarbeiter_id',maId).eq('tag',currentDay);
+    if(status){await sb.from('status_eintraege').insert({mitarbeiter_id:maId,tag:currentDay,status});}
+  }catch(e){showToast('Fehler beim Speichern des Status',true);return;}
+  closeModal();await loadAll();
+  const person=getPersonAmPlatz(parseInt(nr));
+  const geraet=geraete.filter(g=>g.platz===parseInt(nr)).find(g=>g.typ!=='Bildschirm')||null;
+  if(person)openPlatzPop(nr,person,geraet);
+}
+
+function openAblagePop(nr){showModal('<div class="modal-title">Platz '+nr+' – Ablage (gesperrt)</div><p style="font-size:11px;color:#888;margin:8px 0">Dieser Platz ist als Ablage gesperrt.</p><div><button class="mbtn gold" onclick="freischalten('+nr+')">Freischalten</button><button class="mbtn" onclick="sperrenPlatz('+nr+')">Gesperrt lassen</button><button class="mbtn" onclick="closeModal()">Schließen</button></div>');}
+
 function openFreiPop(nr,geraet){
   showModal('<div class="modal-title">Platz '+nr+' buchen – '+currentDay+'</div>'
     +'<div class="mrow"><span class="mlabel">Gerät</span><span class="mval">'+(geraet?devIcon(geraet.typ,11)+' '+geraet.typ+' · '+geraet.id:'kein Gerät')+'</span></div>'
@@ -507,6 +708,7 @@ function openFreiPop(nr,geraet){
     +'<select id="buch-sel" style="width:100%;margin-top:5px;font-size:11px;padding:5px 7px;border:1px solid #ddd;border-radius:6px" onchange="if(this.value)document.getElementById(\'buch-name\').value=this.options[this.selectedIndex].text"><option value="">– Person wählen –</option>'+mitarbeitende.map(m=>'<option value="'+m.id+'">'+m.name+'</option>').join('')+'</select>'
     +'<div><button class="mbtn grn" onclick="buchen('+nr+')">Platz buchen</button><button class="mbtn" onclick="closeModal()">Abbrechen</button></div>');
 }
+
 async function buchen(nr){
   const name=document.getElementById('buch-name').value.trim();
   const selVal=document.getElementById('buch-sel').value;
@@ -518,13 +720,19 @@ async function buchen(nr){
   if(error){showToast('Fehler: '+error.message,true);return;}
   closeModal();showToast(name+' → Platz '+nr);await loadAll();
 }
+
 async function entfernen(nr){
   const p=getPersonAmPlatz(nr);if(!p)return;
   if(p.quelle==='fest'){await sb.from('mitarbeitende').update({platz:null}).eq('id',p.id);}
   else{await sb.from('buchungen').delete().eq('platz',nr).eq('tag',currentDay);}
   closeModal();await loadAll();
 }
+
 async function freischalten(nr){await sb.from('sperren').delete().eq('platz',nr);closeModal();showToast('Platz '+nr+' freigeschaltet');await loadAll();}
+async function sperrenPlatz(nr){
+  await sb.from('sperren').upsert({platz:nr});closeModal();await loadAll();
+}
+
 function personForm(m){
   return '<div class="form-row"><label>Name</label><input id="f-name" type="text" value="'+(m?m.name:'')+'" placeholder="Max M."></div>'
     +'<div class="form-row"><label>Typ</label><select id="f-typ"><option value="fest" '+(m&&m.typ==='fest'?'selected':'')+'>Fester Platz</option><option value="flex" '+(m&&m.typ==='flex'?'selected':'')+'>Flex</option></select></div>'
@@ -535,8 +743,10 @@ function personForm(m){
     +'<div class="form-row"><label>Tage in Mainz</label><div class="day-checks">'+['Mo','Di','Mi','Do','Fr'].map(d=>'<label><input type="checkbox" class="mainz-cb" value="'+d+'" '+(m&&(m.mainz_tage||[]).includes(d)?'checked':'')+'>'+d+'</label>').join('')+'</div></div>'
     +'<div class="form-row"><label>Einschränkung</label><input id="f-einschr" type="text" value="'+(m?m.einschraenkung||'':'')+'" placeholder="z.B. Fensterplatz"></div>';
 }
+
 function openAddPerson(){showModal('<div class="modal-title">Person hinzufügen</div>'+personForm(null)+'<div><button class="mbtn grn" onclick="savePerson(null)">Hinzufügen</button><button class="mbtn" onclick="closeModal()">Abbrechen</button></div>');}
 function openEditPerson(id){const m=mitarbeitende.find(m=>m.id===id);if(!m)return;showModal('<div class="modal-title">Bearbeiten – '+m.name+'</div>'+personForm(m)+'<div><button class="mbtn grn" onclick="savePerson('+id+')">Speichern</button><button class="mbtn" onclick="closeModal()">Abbrechen</button></div>');}
+
 async function savePerson(id){
   const name=document.getElementById('f-name').value.trim();if(!name){showToast('Name erforderlich',true);return;}
   const tage=Array.from(document.querySelectorAll('.day-cb:checked')).map(i=>i.value);
@@ -546,46 +756,46 @@ async function savePerson(id){
   if(id){({error}=await sb.from('mitarbeitende').update(data).eq('id',id));}
   else{({error}=await sb.from('mitarbeitende').insert({...data,platz:null}));}
   if(error){showToast('Fehler: '+error.message,true);return;}
-  // Sync mainz table: remove old entries for this person, add new ones
-  const personName=name;
-  await sb.from('mainz').delete().eq('name',personName);
-  if(mainzTage.length){
-    await sb.from('mainz').insert(mainzTage.map(tag=>({name:personName,tag})));
-  }
+  await sb.from('mainz').delete().eq('name',name);
+  if(mainzTage.length){await sb.from('mainz').insert(mainzTage.map(tag=>({name,tag})));}
   closeModal();showToast(name+(id?' aktualisiert':' hinzugefügt'));await loadAll();
 }
-async function deletePerson(id){
-  const m=mitarbeitende.find(m=>m.id===id);if(!confirm('Wirklich löschen: '+m.name+'?'))return;
-  await sb.from('mitarbeitende').delete().eq('id',id);showToast(m.name+' entfernt');await loadAll();
-}
+
+async function deletePerson(id){const m=mitarbeitende.find(m=>m.id===id);if(!confirm('Wirklich löschen: '+m.name+'?'))return;await sb.from('mitarbeitende').delete().eq('id',id);showToast(m.name+' entfernt');await loadAll();}
+
 function openAddGeraet(){showModal('<div class="modal-title">Gerät hinzufügen</div><div class="form-row"><label>Geräte-ID</label><input id="g-id" type="text" placeholder="iMac-08 oder Screen-03"></div><div class="form-row"><label>Typ</label><select id="g-typ"><option value="iMac">iMac</option><option value="MacBook">MacBook</option><option value="Bildschirm">Bildschirm</option></select></div><div class="form-row"><label>Nutzungsart</label><select id="g-art"><option value="fest">Fest</option><option value="geteilt">Geteilt</option><option value="mobil">Mobil</option></select></div><div class="form-row"><label>Platz (optional)</label><input id="g-platz" type="text" placeholder="z.B. 11"></div><div><button class="mbtn grn" onclick="saveGeraet(null)">Hinzufügen</button><button class="mbtn" onclick="closeModal()">Abbrechen</button></div>');}
 function openEditGeraet(gid){const g=geraete.find(g=>g.id===gid);if(!g)return;showModal('<div class="modal-title">Bearbeiten – '+g.id+'</div><div class="form-row"><label>Geräte-ID</label><input id="g-id" type="text" value="'+g.id+'"></div><div class="form-row"><label>Typ</label><select id="g-typ"><option value="iMac" '+(g.typ==='iMac'?'selected':'')+'>iMac</option><option value="MacBook" '+(g.typ==='MacBook'?'selected':'')+'>MacBook</option><option value="Bildschirm" '+(g.typ==='Bildschirm'?'selected':'')+'>Bildschirm</option></select></div><div class="form-row"><label>Nutzungsart</label><select id="g-art"><option value="fest" '+(g.art==='fest'?'selected':'')+'>Fest</option><option value="geteilt" '+(g.art==='geteilt'?'selected':'')+'>Geteilt</option><option value="mobil" '+(g.art==='mobil'?'selected':'')+'>Mobil</option></select></div><div class="form-row"><label>Platz</label><input id="g-platz" type="text" value="'+(g.platz||'')+'"></div><div><button class="mbtn grn" onclick="saveGeraet(\''+gid+'\')">Speichern</button><button class="mbtn" onclick="closeModal()">Abbrechen</button></div>');}
+
 async function saveGeraet(oldId){
   const id=document.getElementById('g-id').value.trim();if(!id){showToast('ID erforderlich',true);return;}
   const pv=document.getElementById('g-platz').value.trim();
   const data={id,typ:document.getElementById('g-typ').value,art:document.getElementById('g-art').value,platz:pv?parseInt(pv):null};
   let error;
-  if(oldId){({error}=await sb.from('geraete').update(data).eq('id',oldId));}
-  else{({error}=await sb.from('geraete').insert(data));}
+  if(oldId){({error}=await sb.from('geraete').update(data).eq('id',oldId));}else{({error}=await sb.from('geraete').insert(data));}
   if(error){showToast('Fehler: '+error.message,true);return;}
   closeModal();showToast(id+(oldId?' aktualisiert':' hinzugefügt'));await loadAll();
 }
+
 async function deleteGeraet(id){if(!confirm('Wirklich löschen: '+id+'?'))return;await sb.from('geraete').delete().eq('id',id);showToast(id+' entfernt');await loadAll();}
+
 function openAddProjekt(){showModal('<div class="modal-title">Projekt hinzufügen</div><div class="form-row"><label>Projektname</label><input id="p-name" type="text" placeholder="Projekt D"></div><div class="form-row"><label>Farbe</label><select id="p-farbe">'+projFarben.map(f=>'<option value="'+f+'">'+f+'</option>').join('')+'</select></div><div class="form-row"><label>Beschreibung</label><input id="p-desc" type="text" placeholder="Kurzbeschreibung"></div><div><button class="mbtn grn" onclick="saveProjekt(null)">Hinzufügen</button><button class="mbtn" onclick="closeModal()">Abbrechen</button></div>');}
 function openEditProjekt(pid){const p=projekte.find(p=>p.id===pid);if(!p)return;showModal('<div class="modal-title">Bearbeiten – '+p.name+'</div><div class="form-row"><label>Projektname</label><input id="p-name" type="text" value="'+p.name+'"></div><div class="form-row"><label>Farbe</label><select id="p-farbe">'+projFarben.map(f=>'<option value="'+f+'" '+(p.farbe===f?'selected':'')+'>'+f+'</option>').join('')+'</select></div><div class="form-row"><label>Beschreibung</label><input id="p-desc" type="text" value="'+(p.beschreibung||'')+'"></div><div><button class="mbtn grn" onclick="saveProjekt(\''+pid+'\')">Speichern</button><button class="mbtn" onclick="closeModal()">Abbrechen</button></div>');}
+
 async function saveProjekt(pid){
   const name=document.getElementById('p-name').value.trim();if(!name){showToast('Name erforderlich',true);return;}
   const data={name,farbe:document.getElementById('p-farbe').value,beschreibung:document.getElementById('p-desc').value};
   let error;
-  if(pid){({error}=await sb.from('projekte').update(data).eq('id',pid));}
-  else{({error}=await sb.from('projekte').insert({...data,id:'P'+Date.now()}));}
+  if(pid){({error}=await sb.from('projekte').update(data).eq('id',pid));}else{({error}=await sb.from('projekte').insert({...data,id:'P'+Date.now()}));}
   if(error){showToast('Fehler: '+error.message,true);return;}
   closeModal();showToast(name+(pid?' aktualisiert':' hinzugefügt'));await loadAll();
 }
+
 async function deleteProjekt(pid){const p=projekte.find(p=>p.id===pid);if(!confirm('Wirklich löschen: '+p.name+'?'))return;await sb.from('projekte').delete().eq('id',pid);showToast(p.name+' entfernt');await loadAll();}
+
 function showModal(html){document.getElementById('modal-c').innerHTML='<div class="modal-wrap" onclick="if(event.target===this)closeModal()"><div class="modal">'+html+'</div></div>';}
 function closeModal(){document.getElementById('modal-c').innerHTML='';}
 function showToast(msg,err){const t=document.getElementById('toast');t.textContent=msg;t.className='toast show'+(err?' err':'');setTimeout(()=>t.classList.remove('show'),3000);}
+
 function showTopTab(id,btn){
   document.querySelectorAll('.tab-content').forEach(el=>{el.classList.remove('active');el.style.display='none';});
   document.querySelectorAll('.top-tab').forEach(el=>el.classList.remove('active'));
@@ -595,12 +805,24 @@ function showTopTab(id,btn){
   if(id==='projekte')renderProjTable();
   if(id==='mainz')renderMainz();
 }
+
 function toggleSidebar(){sidebarOpen=!sidebarOpen;document.getElementById('sidebar').classList.toggle('collapsed',!sidebarOpen);document.getElementById('sb-icon').textContent=sidebarOpen?'‹':'›';}
 function toggleSec(id){const el=document.getElementById(id);const ch=document.getElementById('chev-'+id);const h=el.style.display==='none';el.style.display=h?'flex':'none';ch.classList.toggle('open',h);}
-function setDay(day,btn){currentDay=day;document.querySelectorAll('.day-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');renderFloor();renderSidebar();}
-function renderAll(){renderSidebar();renderFloor();renderMaTable();renderDevTable();renderProjTable();renderMainz();}
+
+function setDay(day,btn){
+  currentDay=day;
+  document.querySelectorAll('.day-btn').forEach(b=>b.classList.remove('active'));
+  if(btn)btn.classList.add('active');
+  else document.getElementById('btn-'+day)&&document.getElementById('btn-'+day).classList.add('active');
+  renderFloor();renderSidebar();renderWhoPanel();
+}
+
+function renderAll(){renderSidebar();renderFloor();renderWhoPanel();renderLegend();renderMaTable();renderDevTable();renderProjTable();renderMainz();}
+
 document.querySelectorAll('.tab-content').forEach(el=>el.style.display='none');
 document.getElementById('tab-sitzplan').style.display='flex';
+initDateDisplay();
+setDay(currentDay,null);
 loadAll();
 </script>
 </body>
