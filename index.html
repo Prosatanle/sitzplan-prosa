@@ -171,6 +171,45 @@ tr:hover td{background:#FAFAF3}
   .platz{break-inside:avoid}
   body{background:#fff}
 }
+/* WOCHENÜBERSICHT */
+#woche-table th{text-align:center;min-width:90px}
+#woche-table td{text-align:center;vertical-align:middle;padding:5px 8px}
+#woche-table td:first-child{text-align:left;font-weight:600;min-width:120px}
+.woche-cell{display:flex;flex-direction:column;align-items:center;gap:2px;min-height:36px;justify-content:center}
+.woche-platz{font-size:10px;font-weight:600;color:#1a1a1a}
+.woche-status{font-size:9px;padding:1px 5px;border-radius:3px;font-weight:600}
+.ws-buero{background:#EAF3DE;color:#27500A}
+.ws-mainz{background:#FDF5CC;color:#7A6300}
+.ws-ho{background:#E6F1FB;color:#185FA5}
+.ws-ab{background:#f5f5f3;color:#aaa}
+.ws-frei{font-size:9px;color:#ccc}
+
+/* MOBILE */
+@media (max-width:700px){
+  .who-panel{display:none}
+  .sidebar{width:0;min-width:0;border:none}
+  .sidebar.collapsed{width:0;min-width:0}
+  .top-tab{padding:8px 9px;font-size:11px}
+  .date-badge{display:none}
+  .tischgruppen{flex-direction:column;gap:10px}
+  .tischgruppe{width:100%}
+  .tisch-row{flex-wrap:wrap}
+  .platz{width:calc(50vw - 28px);height:80px}
+  .platz-name{font-size:11px}
+  .platz-geraet-id{font-size:8px}
+  .floor-area{padding:8px}
+  .topbar{padding:6px 8px;gap:4px}
+  .day-btn{padding:3px 7px;font-size:10px}
+  .auto-btn,.print-btn{font-size:10px;padding:4px 8px}
+  .top-tabs{overflow-x:auto;padding:0 8px}
+  .tbl-wrap{overflow-x:auto}
+  table{font-size:10px}
+  .modal{width:95vw;padding:1rem}
+}
+@media (max-width:400px){
+  .platz{width:calc(50vw - 20px);height:74px}
+  .platz-name{font-size:10px}
+}
 </style>
 </head>
 <body>
@@ -181,6 +220,7 @@ tr:hover td{background:#FAFAF3}
     <div class="top-tab" onclick="showTopTab('geraete',this)">Geräte</div>
     <div class="top-tab" onclick="showTopTab('projekte',this)">Projekte</div>
     <div class="top-tab" onclick="showTopTab('mainz',this)">Mainz</div>
+    <div class="top-tab" onclick="showTopTab('woche',this)">Wochenübersicht</div>
     <div class="date-badge">
       <span id="date-display"></span>
       <span class="kw" id="kw-display"></span>
@@ -235,7 +275,7 @@ tr:hover td{background:#FAFAF3}
   <div id="tab-mitarbeitende" class="tab-content">
     <div class="list-pane">
       <div class="list-header"><span class="list-title">Mitarbeitende</span><button class="add-btn" onclick="openAddPerson()">+ Person hinzufügen</button></div>
-      <div class="tbl-wrap"><table><thead><tr><th>Name</th><th>Typ</th><th>Platz</th><th>Gerät</th><th>iMac-Logins</th><th>Tage DA</th><th>Mainz</th><th>Projekte</th><th>Einschränkung</th><th></th></tr></thead><tbody id="ma-tbody"></tbody></table></div>
+      <div class="tbl-wrap"><table><thead><tr><th>Name</th><th>Typ</th><th>Platz</th><th>Gerät</th><th>iMac-Logins</th><th>Tage DA</th><th>Mainz</th><th>Urlaub</th><th>Projekte</th><th>Einschränkung</th><th></th></tr></thead><tbody id="ma-tbody"></tbody></table></div>
     </div>
   </div>
   <div id="tab-geraete" class="tab-content">
@@ -255,6 +295,17 @@ tr:hover td{background:#FAFAF3}
       <div class="list-header"><span class="list-title">Mainz – Anwesenheit</span></div>
       <p style="font-size:11px;color:#888;margin-bottom:4px">Wer ist an welchem Tag in der Zweigstelle Mainz?</p>
       <div class="mainz-grid" id="mainz-grid"></div>
+    </div>
+  </div>
+  <div id="tab-woche" class="tab-content">
+    <div class="list-pane">
+      <div class="list-header"><span class="list-title">Wochenübersicht</span><span id="woche-kw" style="font-size:11px;color:#aaa"></span></div>
+      <div class="tbl-wrap" id="woche-table-wrap">
+        <table id="woche-table"><thead><tr>
+          <th style="min-width:120px">Person</th>
+          <th>Mo</th><th>Di</th><th>Mi</th><th>Do</th><th>Fr</th>
+        </tr></thead><tbody id="woche-tbody"></tbody></table>
+      </div>
     </div>
   </div>
 </div>
@@ -326,12 +377,22 @@ function getStatusForPerson(maId,day){
 }
 function getMaProjekte(ma){return(ma.projekte||[]).map(id=>projekte.find(p=>p.id===id)).filter(Boolean);}
 function getNutzerVonGeraet(gId){const ms=mitarbeitende.filter(m=>m.geraet===gId);return ms.length?ms.map(m=>m.name).join(', '):'–';}
+function getTGBereich(tgIdx){return tgIdx<3?'oben':'unten';}
 function getTeamWarnung(ma,platzNr){
   const meineTG=getTGIdx(platzNr);
+  const meinBereich=getTGBereich(meineTG);
   const fernKollegen=mitarbeitende.filter(m=>{
-    if(m.id===ma.id||!m.platz||!(m.tage||[]).includes(currentDay))return false;
+    if(m.id===ma.id||!(m.tage||[]).includes(currentDay))return false;
     if(!sharedProjects(ma,m).length)return false;
-    return Math.abs(getTGIdx(m.platz)-meineTG)>1;
+    // Check where kollege sits today
+    const kollPlatz=m.platz||(Object.entries(buchungen[currentDay]||{}).find(([_,b])=>b.id===m.id)||[])[0];
+    if(!kollPlatz)return false;
+    const kollTG=getTGIdx(parseInt(kollPlatz));
+    const kollBereich=getTGBereich(kollTG);
+    // Warn if different floor OR more than 1 TG apart (e.g. TG1 vs TG3 = 2 apart = warn)
+    const differentFloor=meinBereich!==kollBereich;
+    const tooFar=Math.abs(kollTG-meineTG)>1;
+    return differentFloor||tooFar;
   });
   if(!fernKollegen.length)return null;
   return fernKollegen.map(m=>{
@@ -373,8 +434,23 @@ async function loadAll(){
     buchungen={Mo:{},Di:{},Mi:{},Do:{},Fr:{}};
     (bR.data||[]).forEach(b=>{
       const ma=mitarbeitende.find(m=>m.id===b.mitarbeiter_id);
-      if(ma)buchungen[b.tag][b.platz]={...ma,quelle:'gebucht',buchungsname:b.buchungsname||ma.name};
-      else if(b.buchungsname)buchungen[b.tag][b.platz]={name:b.buchungsname,quelle:'gebucht',buchungsname:b.buchungsname,projekte:[]};
+      if(ma){
+        // Skip buchung if person already has a fest platz for this day
+        if(ma.typ==='fest'&&ma.platz&&ma.platz!==b.platz&&(ma.tage||[]).includes(b.tag)){
+          // Person has a fest platz - delete this duplicate buchung silently
+          sb.from('buchungen').delete().eq('id',b.id).then(()=>{});
+          return;
+        }
+        // Skip if person already booked on another platz this day (keep first only)
+        const alreadyBooked=Object.values(buchungen[b.tag]).find(x=>x.id===ma.id);
+        if(alreadyBooked){
+          sb.from('buchungen').delete().eq('id',b.id).then(()=>{});
+          return;
+        }
+        buchungen[b.tag][b.platz]={...ma,quelle:'gebucht',buchungsname:b.buchungsname||ma.name};
+      } else if(b.buchungsname){
+        buchungen[b.tag][b.platz]={name:b.buchungsname,quelle:'gebucht',buchungsname:b.buchungsname,projekte:[]};
+      }
     });
     mainzEintraege={Mo:[],Di:[],Mi:[],Do:[],Fr:[]};
     try{const mzR=await sb.from('mainz').select('*');(mzR.data||[]).forEach(e=>{if(mainzEintraege[e.tag])mainzEintraege[e.tag].push(e);});}catch(ex){}
@@ -384,6 +460,7 @@ async function loadAll(){
       (stR.data||[]).forEach(s=>{statusEintraege[s.mitarbeiter_id+'_'+s.tag]=s.status;});
     }catch(ex){}
     renderAll();
+    setTimeout(checkSharedImacs,500);
   }catch(e){showToast('Ladefehler: '+e.message,true);}
   document.getElementById('loading-overlay').style.display='none';
 }
@@ -420,6 +497,7 @@ function renderWhoPanel(){
   const imBuero=[],inMainz=[],homeoffice=[],abwesend=[];
   mitarbeitende.forEach(m=>{
     const status=getStatusForPerson(m.id,currentDay);
+    if(isUrlaubOnDay(m,currentDay)){abwesend.push({...m,_urlaubLabel:true});return;}
     if(status==='abwesend'){abwesend.push(m);return;}
     if(status==='homeoffice'){homeoffice.push(m);return;}
     const inMainzToday=(mainzEintraege[currentDay]||[]).some(e=>e.name===m.name);
@@ -430,8 +508,9 @@ function renderWhoPanel(){
     if(!arr.length)return;
     const lbl=document.createElement('div');lbl.className='who-section-lbl';lbl.textContent=label+' ('+arr.length+')';body.appendChild(lbl);
     arr.forEach(m=>{
+      const dispLabel=m._urlaubLabel?'<span class="who-label lbl-ab">URLAUB</span>':labelHTML;
       const card=document.createElement('div');card.className='who-card '+cssClass;
-      card.innerHTML='<span class="who-name">'+m.name+'</span>'+labelHTML;
+      card.innerHTML='<span class="who-name">'+m.name+'</span>'+dispLabel;
       body.appendChild(card);
     });
   }
@@ -529,9 +608,21 @@ async function handleDrop(nr){
     const ma=mitarbeitende.find(m=>m.id===dragData.id);if(!ma)return;
     if(!(ma.tage||[]).includes(currentDay)){showToast(ma.name+' ist '+currentDay+' nicht da');return;}
     if(isMacBookUser(ma)&&ma.typ==='flex'&&!hasScreenAtPlatz(nr)){showToast(ma.name+' braucht einen Platz mit Bildschirm');return;}
-    const belegt=getPersonAmPlatz(nr);if(belegt&&belegt.id!==ma.id){showToast('Platz '+nr+' ist bereits belegt');return;}
-    if(ma.typ==='fest'){const{error}=await sb.from('mitarbeitende').update({platz:nr}).eq('id',ma.id);if(error){showToast('Fehler: '+error.message,true);return;}}
-    else{await sb.from('buchungen').delete().eq('platz',nr).eq('tag',currentDay);const{error}=await sb.from('buchungen').insert({platz:nr,tag:currentDay,mitarbeiter_id:ma.id,buchungsname:ma.name});if(error){showToast('Fehler: '+error.message,true);return;}}
+    const belegt=getPersonAmPlatz(nr);if(belegt&&belegt.id!==ma.id){showToast('Platz '+nr+' ist bereits belegt von '+belegt.name);return;}
+    // Check if person already sits somewhere else today - remove old booking first
+    const bereitsGebucht=Object.entries(buchungen[currentDay]||{}).find(([p,b])=>b.id===ma.id&&parseInt(p)!==nr);
+    if(bereitsGebucht){
+      showToast(ma.name+' war auf Platz '+bereitsGebucht[0]+' – wird verschoben');
+      await sb.from('buchungen').delete().eq('platz',parseInt(bereitsGebucht[0])).eq('tag',currentDay);
+    }
+    if(ma.typ==='fest'){
+      const{error}=await sb.from('mitarbeitende').update({platz:nr}).eq('id',ma.id);
+      if(error){showToast('Fehler: '+error.message,true);return;}
+    } else {
+      await sb.from('buchungen').delete().eq('platz',nr).eq('tag',currentDay);
+      const{error}=await sb.from('buchungen').insert({platz:nr,tag:currentDay,mitarbeiter_id:ma.id,buchungsname:ma.name});
+      if(error){showToast('Fehler: '+error.message,true);return;}
+    }
     showToast(ma.name+' → Platz '+nr);
   } else {
     const{error}=await sb.from('geraete').update({platz:nr}).eq('id',dragData.id);if(error){showToast('Fehler: '+error.message,true);return;}
@@ -580,7 +671,7 @@ function renderMaTable(){
   if(!tb)return;
   tb.innerHTML='';
   if(!mitarbeitende.length){
-    tb.innerHTML='<tr><td colspan="10" style="text-align:center;padding:20px;color:#aaa">Noch keine Mitarbeitenden</td></tr>';
+    tb.innerHTML='<tr><td colspan="11" style="text-align:center;padding:20px;color:#aaa">Noch keine Mitarbeitenden</td></tr>';
     return;
   }
   mitarbeitende.forEach(function(m){
@@ -613,6 +704,10 @@ function renderMaTable(){
     // Projekte
     const td8=document.createElement('td');td8.innerHTML='<div class="proj-pills">'+projPillsHTML(m.projekte)+'</div>';tr.appendChild(td8);
     // Einschränkung
+    // Urlaub
+    const tdU=document.createElement('td');tdU.style.cssText='font-size:9px;color:#7A6300';
+    tdU.textContent=(m.urlaub&&m.urlaub.length?m.urlaub.map(function(u){return u.von.slice(5)+' – '+u.bis.slice(5);}).join(', '):'–');
+    tr.appendChild(tdU);
     const td9=document.createElement('td');td9.style.cssText='color:#888;font-size:10px';td9.textContent=m.einschraenkung||'–';tr.appendChild(td9);
     // Buttons
     const td10=document.createElement('td');td10.style.whiteSpace='nowrap';
@@ -744,6 +839,28 @@ async function buchen(nr){
   const name=document.getElementById('buch-name').value.trim();
   const selVal=document.getElementById('buch-sel').value;
   if(!name){showToast('Bitte Name eingeben',true);return;}
+  // Check if this person (by id or name) is already booked somewhere today
+  if(selVal){
+    const maId=parseInt(selVal);
+    const bereitsGebucht=Object.entries(buchungen[currentDay]||{}).find(([p,b])=>b.id===maId&&parseInt(p)!==nr);
+    if(bereitsGebucht){
+      const andererPlatz=parseInt(bereitsGebucht[0]);
+      await sb.from('buchungen').delete().eq('platz',andererPlatz).eq('tag',currentDay);
+      showToast(name+' von Platz '+andererPlatz+' verschoben');
+    }
+    // Also remove fest platz conflict
+    const ma=mitarbeitende.find(m=>m.id===maId);
+    if(ma&&ma.platz&&ma.platz!==nr){
+      // Fest person being booked elsewhere - warn
+      showToast('Hinweis: '+name+' hat festen Platz '+ma.platz);
+    }
+  } else {
+    // Check by name for named bookings
+    const bereitsGebucht=Object.entries(buchungen[currentDay]||{}).find(([p,b])=>b.buchungsname===name&&parseInt(p)!==nr);
+    if(bereitsGebucht){
+      await sb.from('buchungen').delete().eq('platz',parseInt(bereitsGebucht[0])).eq('tag',currentDay);
+    }
+  }
   await sb.from('buchungen').delete().eq('platz',nr).eq('tag',currentDay);
   const insertData={platz:nr,tag:currentDay,buchungsname:name};
   if(selVal)insertData.mitarbeiter_id=parseInt(selVal);
@@ -772,9 +889,37 @@ function personForm(m){
     +'<div class="form-row"><label>Projekte</label>'+projCheckboxes(m?m.projekte||[]:[])+' </div>'
     +'<div class="form-row"><label>Bürotage Darmstadt</label><div class="day-checks">'+['Mo','Di','Mi','Do','Fr'].map(d=>'<label><input type="checkbox" class="day-cb" value="'+d+'" '+(m&&(m.tage||[]).includes(d)?'checked':!m?'checked':'')+'>'+d+'</label>').join('')+'</div></div>'
     +'<div class="form-row"><label>Tage in Mainz</label><div class="day-checks">'+['Mo','Di','Mi','Do','Fr'].map(d=>'<label><input type="checkbox" class="mainz-cb" value="'+d+'" '+(m&&(m.mainz_tage||[]).includes(d)?'checked':'')+'>'+d+'</label>').join('')+'</div></div>'
-    +'<div class="form-row"><label>Einschränkung</label><input id="f-einschr" type="text" value="'+(m?m.einschraenkung||'':'')+'" placeholder="z.B. Fensterplatz"></div>';
+    +'<div class="form-row"><label>Einschränkung</label><input id="f-einschr" type="text" value="'+(m?m.einschraenkung||'':'')+'"></div>'
+    +'<div class="form-row"><label>Urlaub / Abwesenheit (Zeiträume)</label><div id="urlaub-list" style="margin-bottom:5px"></div><div style="display:flex;gap:5px;flex-wrap:wrap"><input id="urlaub-von" type="date" style="flex:1;min-width:100px"><input id="urlaub-bis" type="date" style="flex:1;min-width:100px"><button type="button" class="mbtn" style="margin:0;padding:4px 8px;font-size:10px" onclick="addUrlaubEintrag()">+ Hinzufügen</button></div></div>'
+    +'<script>window._urlaubList='+(m&&m.urlaub?JSON.stringify(m.urlaub):'[]')+';renderUrlaubList();<\/script>';
 }
 
+function addUrlaubEintrag(){
+  const von=document.getElementById('urlaub-von').value;
+  const bis=document.getElementById('urlaub-bis').value;
+  if(!von||!bis){showToast('Bitte Von- und Bis-Datum angeben',true);return;}
+  if(von>bis){showToast('Von-Datum muss vor Bis-Datum liegen',true);return;}
+  if(!window._urlaubList)window._urlaubList=[];
+  window._urlaubList.push({von,bis});
+  renderUrlaubList();
+  document.getElementById('urlaub-von').value='';
+  document.getElementById('urlaub-bis').value='';
+}
+function removeUrlaubEintrag(idx){
+  window._urlaubList.splice(idx,1);
+  renderUrlaubList();
+}
+function renderUrlaubList(){
+  const el=document.getElementById('urlaub-list');
+  if(!el)return;
+  if(!window._urlaubList||!window._urlaubList.length){el.innerHTML='<div style="font-size:10px;color:#aaa">Keine Einträge</div>';return;}
+  el.innerHTML=window._urlaubList.map(function(u,i){
+    return '<div style="display:flex;align-items:center;gap:6px;margin-bottom:3px;font-size:10px;background:#FDF5CC;border:1px solid #DDB20044;border-radius:4px;padding:3px 7px">'
+      +'<span style="flex:1">'+u.von+' – '+u.bis+'</span>'
+      +'<button type="button" onclick="removeUrlaubEintrag('+i+')" style="background:none;border:none;cursor:pointer;color:#D85A30;font-size:12px">✕</button>'
+      +'</div>';
+  }).join('');
+}
 function openAddPerson(){showModal('<div class="modal-title">Person hinzufügen</div>'+personForm(null)+'<div><button class="mbtn grn" onclick="savePerson(null)">Hinzufügen</button><button class="mbtn" onclick="closeModal()">Abbrechen</button></div>');}
 function openEditPerson(id){
   const m=mitarbeitende.find(m=>m.id===id);
@@ -789,7 +934,7 @@ async function savePerson(id){
   const name=document.getElementById('f-name').value.trim();if(!name){showToast('Name erforderlich',true);return;}
   const tage=Array.from(document.querySelectorAll('.day-cb:checked')).map(i=>i.value);
   const mainzTage=Array.from(document.querySelectorAll('.mainz-cb:checked')).map(i=>i.value);
-  const data={name,typ:document.getElementById('f-typ').value,geraet:document.getElementById('f-geraet').value||null,imac_logins:getCheckedImacs(),projekte:getCheckedProjekte(),tage,mainz_tage:mainzTage,einschraenkung:document.getElementById('f-einschr').value};
+  const data={name,typ:document.getElementById('f-typ').value,geraet:document.getElementById('f-geraet').value||null,imac_logins:getCheckedImacs(),projekte:getCheckedProjekte(),tage,mainz_tage:mainzTage,einschraenkung:document.getElementById('f-einschr').value,urlaub:window._urlaubList||[]};
   let error;
   if(id){({error}=await sb.from('mitarbeitende').update(data).eq('id',id));}
   else{({error}=await sb.from('mitarbeitende').insert({...data,platz:null}));}
@@ -844,6 +989,7 @@ function showTopTab(id,btn){
   if(id==='geraete')renderDevTable();
   if(id==='projekte')renderProjTable();
   if(id==='mainz')renderMainz();
+  if(id==='woche')renderWoche();
 }
 
 function toggleSidebar(){sidebarOpen=!sidebarOpen;document.getElementById('sidebar').classList.toggle('collapsed',!sidebarOpen);document.getElementById('sb-icon').textContent=sidebarOpen?'‹':'›';}
@@ -857,7 +1003,144 @@ function setDay(day,btn){
   renderFloor();renderSidebar();renderWhoPanel();
 }
 
+
+// ── WOCHENÜBERSICHT ──────────────────────────
+function renderWoche(){
+  const tbody=document.getElementById('woche-tbody');
+  const kwEl=document.getElementById('woche-kw');
+  if(!tbody)return;
+  if(kwEl)kwEl.textContent='KW '+getKW(new Date());
+  tbody.innerHTML='';
+  mitarbeitende.forEach(function(m){
+    const tr=document.createElement('tr');
+    // Name cell
+    const td0=document.createElement('td');
+    td0.style.fontWeight='600';
+    td0.style.fontSize='11px';
+    td0.textContent=m.name;
+    tr.appendChild(td0);
+    DAYS.forEach(function(day){
+      const td=document.createElement('td');
+      const cell=document.createElement('div');
+      cell.className='woche-cell';
+      // Check status
+      const status=getStatusForPerson(m.id,day);
+      const inMainzToday=(mainzEintraege[day]||[]).some(function(e){return e.name===m.name;});
+      const urlaubHeute=isUrlaubOnDay(m,day);
+      if(urlaubHeute){
+        const s=document.createElement('span');s.className='woche-status ws-ab';s.textContent='Urlaub';cell.appendChild(s);
+      } else if(status==='abwesend'){
+        const s=document.createElement('span');s.className='woche-status ws-ab';s.textContent='Abwesend';cell.appendChild(s);
+      } else if(status==='homeoffice'){
+        const s=document.createElement('span');s.className='woche-status ws-ho';s.textContent='Homeoffice';cell.appendChild(s);
+      } else if(inMainzToday){
+        const s=document.createElement('span');s.className='woche-status ws-mainz';s.textContent='Mainz';cell.appendChild(s);
+      } else if((m.tage||[]).includes(day)){
+        // Find platz
+        var platz=null;
+        if(m.typ==='fest'&&m.platz){platz=m.platz;}
+        else{
+          var buchEntry=Object.entries(buchungen[day]||{}).find(function(e){return e[1].id===m.id;});
+          if(buchEntry)platz=parseInt(buchEntry[0]);
+        }
+        const s=document.createElement('span');s.className='woche-status ws-buero';
+        s.textContent=platz?'Platz '+platz:'Im Büro';cell.appendChild(s);
+      } else {
+        const s=document.createElement('span');s.className='ws-frei';s.textContent='–';cell.appendChild(s);
+      }
+      td.appendChild(cell);
+      tr.appendChild(td);
+    });
+    tbody.appendChild(tr);
+  });
+}
+
+// ── URLAUB HELPERS ───────────────────────────
+function isUrlaubOnDay(ma,day){
+  if(!ma.urlaub||!ma.urlaub.length)return false;
+  const d=getDateForDay(day);
+  const dStr=isoDate(d);
+  return ma.urlaub.some(function(u){return dStr>=u.von&&dStr<=u.bis;});
+}
+
+// ── SHARED IMAC CHECK ────────────────────────
+async function checkSharedImacs(){
+  // Find iMacs where 2+ people with imac_logins are both present today
+  const imacGroups={};
+  mitarbeitende.forEach(function(m){
+    if(!(m.tage||[]).includes(currentDay))return;
+    const status=getStatusForPerson(m.id,currentDay);
+    if(status==='abwesend')return;
+    (m.imac_logins||[]).forEach(function(imacId){
+      if(!imacGroups[imacId])imacGroups[imacId]=[];
+      imacGroups[imacId].push(m);
+    });
+  });
+  // Check which shared imacs have 2+ people today and no assignment yet
+  for(const imacId of Object.keys(imacGroups)){
+    const persons=imacGroups[imacId];
+    if(persons.length<2)continue;
+    // Check if any of them already has a buchung today
+    const alreadyAssigned=persons.filter(function(m){
+      const hasFest=m.typ==='fest'&&m.platz;
+      const hasBuch=Object.values(buchungen[currentDay]||{}).some(function(b){return b.id===m.id;});
+      return hasFest||hasBuch;
+    });
+    if(alreadyAssigned.length>=persons.length)continue;
+    // Show prompt
+    await showSharedImacPrompt(imacId,persons);
+  }
+}
+
+function showSharedImacPrompt(imacId,persons){
+  return new Promise(function(resolve){
+    const geraet=geraete.find(function(g){return g.id===imacId;});
+    const platz=geraet?geraet.platz:null;
+    const opts=persons.map(function(m){
+      return '<button class="mbtn gold" style="margin:3px" onclick="assignImacUser(''+imacId+'','+m.id+','+platz+',resolveSharedImac)">'+m.name+'</button>';
+    }).join('');
+    window.resolveSharedImac=function(){closeModal();resolve();};
+    showModal('<div class="modal-title">Wer nutzt heute '+imacId+'?</div>'
+      +'<p style="font-size:11px;color:#888;margin-bottom:10px">Mehrere Personen sind heute im Büro und an diesem iMac eingeloggt.</p>'
+      +'<div style="display:flex;flex-wrap:wrap;gap:4px">'+opts+'</div>'
+      +'<div style="margin-top:12px;font-size:10px;color:#aaa">Die andere Person bekommt automatisch einen Vorschlag.</div>');
+  });
+}
+
+async function assignImacUser(imacId,maId,platz,callback){
+  const ma=mitarbeitende.find(function(m){return m.id===maId;});
+  if(!ma)return;
+  // Book this person at the imac platz
+  if(platz){
+    await sb.from('buchungen').delete().eq('platz',platz).eq('tag',currentDay);
+    await sb.from('buchungen').insert({platz:platz,tag:currentDay,mitarbeiter_id:maId,buchungsname:ma.name});
+  }
+  // Suggest alternatives for others
+  const geraet=geraete.find(function(g){return g.id===imacId;});
+  const belegt=new Set();
+  if(platz)belegt.add(platz);
+  mitarbeitende.filter(function(m){return m.platz&&m.typ==='fest'&&(m.tage||[]).includes(currentDay);}).forEach(function(m){belegt.add(m.platz);});
+  Object.keys(buchungen[currentDay]||{}).forEach(function(k){belegt.add(parseInt(k));});
+  // Find free imac-compatible plaetze
+  const alternatives=[];
+  geraete.filter(function(g){return g.typ==='iMac'&&g.platz&&!belegt.has(g.platz)&&g.id!==imacId;}).forEach(function(g){
+    alternatives.push(g.id+' (Platz '+g.platz+')');
+  });
+  geraete.filter(function(g){return g.art==='geteilt'&&g.platz&&!belegt.has(g.platz);}).forEach(function(g){
+    if(!alternatives.find(function(a){return a.includes(g.id);}))
+      alternatives.push(g.id+' (Platz '+g.platz+')');
+  });
+  await loadAll();
+  if(callback)callback();
+  if(alternatives.length){
+    showToast(ma.name+' → Platz '+platz+'. Alternativen: '+alternatives.slice(0,3).join(', '));
+  } else {
+    showToast(ma.name+' → Platz '+platz);
+  }
+}
+
 function renderAll(){renderSidebar();renderFloor();renderWhoPanel();renderLegend();renderMaTable();renderDevTable();renderProjTable();renderMainz();}
+function renderAll(){renderSidebar();renderFloor();renderWhoPanel();renderLegend();renderMaTable();renderDevTable();renderProjTable();renderMainz();renderWoche();}
 
 document.querySelectorAll('.tab-content').forEach(el=>el.style.display='none');
 document.getElementById('tab-sitzplan').style.display='flex';
