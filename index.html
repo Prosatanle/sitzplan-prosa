@@ -891,7 +891,7 @@ function personForm(m){
     +'<div class="form-row"><label>Tage in Mainz</label><div class="day-checks">'+['Mo','Di','Mi','Do','Fr'].map(d=>'<label><input type="checkbox" class="mainz-cb" value="'+d+'" '+(m&&(m.mainz_tage||[]).includes(d)?'checked':'')+'>'+d+'</label>').join('')+'</div></div>'
     +'<div class="form-row"><label>Einschränkung</label><input id="f-einschr" type="text" value="'+(m?m.einschraenkung||'':'')+'"></div>'
     +'<div class="form-row"><label>Urlaub / Abwesenheit (Zeiträume)</label><div id="urlaub-list" style="margin-bottom:5px"></div><div style="display:flex;gap:5px;flex-wrap:wrap"><input id="urlaub-von" type="date" style="flex:1;min-width:100px"><input id="urlaub-bis" type="date" style="flex:1;min-width:100px"><button type="button" class="mbtn" style="margin:0;padding:4px 8px;font-size:10px" onclick="addUrlaubEintrag()">+ Hinzufügen</button></div></div>'
-    +'<script>window._urlaubList='+(m&&m.urlaub?JSON.stringify(m.urlaub):'[]')+';renderUrlaubList();<\/script>';
+    ;
 }
 
 function addUrlaubEintrag(){
@@ -920,14 +920,20 @@ function renderUrlaubList(){
       +'</div>';
   }).join('');
 }
-function openAddPerson(){showModal('<div class="modal-title">Person hinzufügen</div>'+personForm(null)+'<div><button class="mbtn grn" onclick="savePerson(null)">Hinzufügen</button><button class="mbtn" onclick="closeModal()">Abbrechen</button></div>');}
+function openAddPerson(){
+  window._urlaubList=[];
+  showModal('<div class="modal-title">Person hinzufügen</div>'+personForm(null)+'<div><button class="mbtn grn" onclick="savePerson(null)">Hinzufügen</button><button class="mbtn" onclick="closeModal()">Abbrechen</button></div>');
+  renderUrlaubList();
+}
 function openEditPerson(id){
   const m=mitarbeitende.find(m=>m.id===id);
   if(!m){showToast('Person nicht gefunden',true);return;}
   try{
-    const html='<div class="modal-title">Bearbeiten</div>'+personForm(m)+'<div><button class="mbtn grn" onclick="savePerson('+id+')">Speichern</button><button class="mbtn" onclick="closeModal()">Abbrechen</button></div>';
+    window._urlaubList=m.urlaub?JSON.parse(JSON.stringify(m.urlaub)):[];
+    const html='<div class="modal-title">Bearbeiten – '+m.name+'</div>'+personForm(m)+'<div><button class="mbtn grn" onclick="savePerson('+id+')">Speichern</button><button class="mbtn" onclick="closeModal()">Abbrechen</button></div>';
     showModal(html);
-  }catch(e){showToast('Fehler beim Öffnen: '+e.message,true);console.error(e);}
+    renderUrlaubList();
+  }catch(e){showToast('Fehler: '+e.message,true);console.error(e);}
 }
 
 async function savePerson(id){
@@ -1097,7 +1103,7 @@ function showSharedImacPrompt(imacId,persons){
     const geraet=geraete.find(function(g){return g.id===imacId;});
     const platz=geraet?geraet.platz:null;
     const opts=persons.map(function(m){
-      return '<button class="mbtn gold" style="margin:3px" onclick="assignImacUser(''+imacId+'','+m.id+','+platz+',resolveSharedImac)">'+m.name+'</button>';
+      return '<button class="mbtn gold" style="margin:3px;cursor:pointer" data-iid="'+imacId+'" data-mid="'+m.id+'" data-platz="'+platz+'" onclick="handleImacBtn(this)">'+m.name+'</button>';
     }).join('');
     window.resolveSharedImac=function(){closeModal();resolve();};
     showModal('<div class="modal-title">Wer nutzt heute '+imacId+'?</div>'
@@ -1107,6 +1113,12 @@ function showSharedImacPrompt(imacId,persons){
   });
 }
 
+function handleImacBtn(btn){
+  const iid=btn.getAttribute('data-iid');
+  const mid=parseInt(btn.getAttribute('data-mid'));
+  const platz=parseInt(btn.getAttribute('data-platz'))||null;
+  assignImacUser(iid,mid,platz,window.resolveSharedImac);
+}
 async function assignImacUser(imacId,maId,platz,callback){
   const ma=mitarbeitende.find(function(m){return m.id===maId;});
   if(!ma)return;
