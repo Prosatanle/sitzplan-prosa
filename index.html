@@ -576,22 +576,53 @@ function printSitzplan(){
 }
 
 function renderMaTable(){
-  const tb=document.getElementById('ma-tbody');if(!tb)return;
-  if(!mitarbeitende.length){tb.innerHTML='<tr><td colspan="10" style="text-align:center;padding:20px;color:#aaa">Noch keine Mitarbeitenden</td></tr>';return;}
+  const tb=document.getElementById('ma-tbody');
+  if(!tb)return;
   tb.innerHTML='';
-  mitarbeitende.forEach(m=>{
-    const gObj=geraete.find(g=>g.id===m.geraet);
+  if(!mitarbeitende.length){
+    tb.innerHTML='<tr><td colspan="10" style="text-align:center;padding:20px;color:#aaa">Noch keine Mitarbeitenden</td></tr>';
+    return;
+  }
+  mitarbeitende.forEach(function(m){
     const tr=document.createElement('tr');
-    tr.innerHTML='<td style="font-weight:600">'+m.name+'</td>'
-      +'<td><span class="badge '+(m.typ==='fest'?'b-fest':'b-flex')+'">'+(m.typ==='fest'?'Fest':'Flex')+'</span></td>'
-      +'<td>'+(m.platz?'Platz '+m.platz:'–')+'</td>'
-      +'<td><div style="display:flex;align-items:center;gap:4px">'+(gObj?devIcon(gObj.typ,11):'')+(m.geraet||'–')+'</div></td>'
-      +'<td style="font-size:10px;color:#888">'+((m.imac_logins||[]).join(', ')||'–')+'</td>'
-      +'<td>'+(m.tage||[]).join(', ')+'</td>'
-      +'<td style="font-size:10px;color:#7A6300">'+(m.mainz_tage&&m.mainz_tage.length?m.mainz_tage.join(', '):'–')+'</td>'
-      +'<td><div class="proj-pills">'+projPillsHTML(m.projekte)+'</div></td>'
-      +'<td style="color:#888;font-size:10px">'+(m.einschraenkung||'–')+'</td>'
-      +'<td style="white-space:nowrap"><button class="edit-btn" onclick="openEditPerson('+m.id+')">Bearbeiten</button> <button class="del-btn" onclick="deletePerson('+m.id+')">✕</button></td>';
+    const gObj=geraete.find(function(g){return g.id===m.geraet;});
+    // Name
+    const td1=document.createElement('td');td1.style.fontWeight='600';td1.textContent=m.name;tr.appendChild(td1);
+    // Typ
+    const td2=document.createElement('td');
+    const badge=document.createElement('span');
+    badge.className='badge '+(m.typ==='fest'?'b-fest':'b-flex');
+    badge.textContent=m.typ==='fest'?'Fest':'Flex';
+    td2.appendChild(badge);tr.appendChild(td2);
+    // Platz
+    const td3=document.createElement('td');td3.textContent=m.platz?'Platz '+m.platz:'–';tr.appendChild(td3);
+    // Gerät
+    const td4=document.createElement('td');
+    const gdiv=document.createElement('div');gdiv.style.cssText='display:flex;align-items:center;gap:4px';
+    if(gObj){gdiv.innerHTML=devIcon(gObj.typ,11);}
+    const gspan=document.createElement('span');gspan.textContent=m.geraet||'–';gdiv.appendChild(gspan);
+    td4.appendChild(gdiv);tr.appendChild(td4);
+    // iMac Logins
+    const td5=document.createElement('td');td5.style.cssText='font-size:10px;color:#888';
+    td5.textContent=(m.imac_logins&&m.imac_logins.length?m.imac_logins.join(', '):'–');tr.appendChild(td5);
+    // Tage DA
+    const td6=document.createElement('td');td6.textContent=(m.tage||[]).join(', ')||'–';tr.appendChild(td6);
+    // Mainz
+    const td7=document.createElement('td');td7.style.cssText='font-size:10px;color:#7A6300';
+    td7.textContent=(m.mainz_tage&&m.mainz_tage.length?m.mainz_tage.join(', '):'–');tr.appendChild(td7);
+    // Projekte
+    const td8=document.createElement('td');td8.innerHTML='<div class="proj-pills">'+projPillsHTML(m.projekte)+'</div>';tr.appendChild(td8);
+    // Einschränkung
+    const td9=document.createElement('td');td9.style.cssText='color:#888;font-size:10px';td9.textContent=m.einschraenkung||'–';tr.appendChild(td9);
+    // Buttons
+    const td10=document.createElement('td');td10.style.whiteSpace='nowrap';
+    const editBtn=document.createElement('button');
+    editBtn.className='edit-btn';editBtn.textContent='Bearbeiten';
+    editBtn.addEventListener('click',function(){openEditPerson(m.id);});
+    const delBtn=document.createElement('button');
+    delBtn.className='del-btn';delBtn.style.marginLeft='4px';delBtn.textContent='✕';
+    delBtn.addEventListener('click',function(){deletePerson(m.id);});
+    td10.appendChild(editBtn);td10.appendChild(delBtn);tr.appendChild(td10);
     tb.appendChild(tr);
   });
 }
