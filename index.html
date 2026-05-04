@@ -1062,14 +1062,23 @@ async function saveGeraet(oldId){
 async function deleteGeraet(id){if(!confirm('Wirklich löschen: '+id+'?'))return;await sb.from('geraete').delete().eq('id',id);showToast(id+' entfernt');await loadAll();}
 
 function colorPickerHTML(selected){
-  return '<div class="color-picker" id="color-picker">'+projFarben.map(function(f){
-    return '<div class="color-swatch'+(f===selected?' selected':'')+'" style="background:'+f+'" title="'+f+'" onclick="selectColor(this,''+f+'')" data-color="'+f+'"></div>';
-  }).join('')+'</div><input type="hidden" id="p-farbe" value="'+(selected||projFarben[0])+'">';
+  const sel=selected||projFarben[0];
+  const swatches=projFarben.map(function(f){
+    const isSel=f===sel;
+    return '<div class="color-swatch'+(isSel?' selected':'')+'" style="background:'+f+';'+(isSel?'border-color:#1a1a1a;transform:scale(1.15)':'')+'" data-color="'+f+'" onclick="selectColor(this)"></div>';
+  }).join('');
+  return '<div class="color-picker" id="color-picker">'+swatches+'</div><input type="hidden" id="p-farbe" value="'+sel+'">';
 }
-function selectColor(el,color){
-  document.querySelectorAll('.color-swatch').forEach(function(s){s.classList.remove('selected');});
+function selectColor(el){
+  document.querySelectorAll('.color-swatch').forEach(function(s){
+    s.classList.remove('selected');
+    s.style.borderColor='transparent';
+    s.style.transform='scale(1)';
+  });
   el.classList.add('selected');
-  document.getElementById('p-farbe').value=color;
+  el.style.borderColor='#1a1a1a';
+  el.style.transform='scale(1.15)';
+  document.getElementById('p-farbe').value=el.getAttribute('data-color');
 }
 function openAddProjekt(){
   showModal('<div class="modal-title">Projekt hinzufügen</div>'
