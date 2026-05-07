@@ -52,28 +52,28 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .floor-wrap{flex:1;display:flex;overflow:hidden}
 .floor-area{flex:1;overflow-y:auto;padding:14px}
 .floor-label{font-size:16px;font-weight:600;color:#DDB200;margin-bottom:10px}
-.tischgruppen{display:flex;gap:24px;flex-wrap:wrap;margin-bottom:32px}
+.tischgruppen{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:18px}
 .tischgruppe{display:flex;flex-direction:column}
 .tg-label{font-size:10px;font-weight:700;color:#4A8BC4;margin-bottom:5px;text-transform:uppercase;letter-spacing:0.06em}
 .tisch-row{display:flex}
-.platz{width:280px;height:220px;border:1px solid #DDB20044;background:#fff;display:flex;flex-direction:column;cursor:pointer;position:relative;transition:background 0.1s;overflow:hidden}
+.platz{width:140px;height:110px;border:1px solid #DDB20044;background:#fff;display:flex;flex-direction:column;cursor:pointer;position:relative;transition:background 0.1s;overflow:hidden}
 .platz:hover{background:#FAFAF3}
 .platz.over{border:2px solid #DDB200;background:#FDF5CC}
 .platz.fest{background:#EAF3DE}
 .platz.gebucht{background:#E6F1FB}
 .platz.gesperrt{background:#FAFAF7;cursor:pointer}
-.platz-geraet-zone{background:#DDB20015;border-bottom:1px solid #DDB20030;padding:8px 12px;display:flex;align-items:center;justify-content:space-between;min-height:52px;flex-shrink:0}
+.platz-geraet-zone{background:#DDB20015;border-bottom:1px solid #DDB20030;padding:4px 7px;display:flex;align-items:center;justify-content:space-between;min-height:32px;flex-shrink:0}
 .platz-geraet-left{display:flex;align-items:center;gap:3px;flex:1;min-width:0;overflow:hidden}
-.platz-geraet-id{font-size:12px;font-weight:600;color:#555;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.platz-geraet-id{font-size:9px;font-weight:600;color:#555;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .platz-screen-id{display:flex;align-items:center;gap:2px;font-size:9px;color:#888;white-space:nowrap;flex-shrink:0}
 .platz-geraet-leer{font-size:9px;color:#ccc;font-style:italic}
-.platz-person-zone{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px 14px;gap:4px}
-.platz-name{font-size:18px;font-weight:700;color:#1a1a1a;line-height:1.2;text-align:center}
+.platz-person-zone{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:5px 7px;gap:1px}
+.platz-name{font-size:13px;font-weight:700;color:#1a1a1a;line-height:1.2;text-align:center}
 .platz-status-badge{font-size:8px;font-weight:600;padding:1px 5px;border-radius:4px;margin-top:2px}
-.platz-frei{font-size:14px;color:#bbb;text-align:center}
-.platz-num{font-size:11px;color:#bbb;font-weight:600;position:absolute;top:4px;right:6px;z-index:2}
-.proj-dots{display:flex;gap:3px;position:absolute;bottom:6px;right:7px}
-.proj-dot{width:10px;height:10px;border-radius:50%}
+.platz-frei{font-size:10px;color:#bbb;text-align:center}
+.platz-num{font-size:8px;color:#bbb;font-weight:600;position:absolute;top:2px;right:4px;z-index:2}
+.proj-dots{display:flex;gap:2px;position:absolute;bottom:3px;right:4px}
+.proj-dot{width:7px;height:7px;border-radius:50%}
 
 /* WHO IS HERE PANEL */
 .who-panel{width:200px;min-width:200px;background:#FFFEF5;border-left:1px solid #DDB20033;display:flex;flex-direction:column;flex-shrink:0;overflow:hidden}
@@ -206,7 +206,7 @@ tr:hover td{background:#FAFAF3}
   .tischgruppen{flex-direction:column;gap:10px}
   .tischgruppe{width:100%}
   .tisch-row{flex-wrap:wrap}
-  .platz{width:calc(50vw - 28px);height:110px}
+  .platz{width:calc(50vw - 28px);height:80px}
   .platz-name{font-size:11px}
   .platz-geraet-id{font-size:8px}
   .floor-area{padding:8px}
@@ -596,8 +596,8 @@ function buildPlatz(nr){
   const screenGeraet=alleGeraeteAmPlatz.find(g=>g.typ==='Bildschirm');
   const numEl=document.createElement('div');numEl.className='platz-num';numEl.textContent=nr;p.appendChild(numEl);
   const gz=document.createElement('div');gz.className='platz-geraet-zone';
-  const leftHTML=hauptGeraet?devIcon(hauptGeraet.typ,18)+'<span class="platz-geraet-id">'+hauptGeraet.id+'</span>':'<span class="platz-geraet-leer">kein Gerät</span>';
-  const rightHTML=screenGeraet?scSVG(16)+'<span style="font-size:12px;color:#888">'+screenGeraet.id+'</span>':'';
+  const leftHTML=hauptGeraet?devIcon(hauptGeraet.typ,13)+'<span class="platz-geraet-id">'+hauptGeraet.id+'</span>':'<span class="platz-geraet-leer">kein Gerät</span>';
+  const rightHTML=screenGeraet?scSVG(12)+'<span style="font-size:9px;color:#888">'+screenGeraet.id+'</span>':'';
   gz.innerHTML='<div class="platz-geraet-left">'+leftHTML+'</div>'+(rightHTML?'<div class="platz-screen-id">'+rightHTML+'</div>':'');
   p.appendChild(gz);
   if(gesperrt){
