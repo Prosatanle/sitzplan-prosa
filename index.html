@@ -222,6 +222,16 @@ tr:hover td{background:#FAFAF3}
   .platz{width:calc(50vw - 20px);height:74px}
   .platz-name{font-size:10px}
 }
+/* LOGIN */
+.login-screen{position:fixed;inset:0;background:#FAFAF7;display:flex;align-items:center;justify-content:center;z-index:1000;flex-direction:column;gap:0}
+.login-box{background:#fff;border:1px solid #DDB20044;border-radius:16px;padding:2.5rem 2rem;width:320px;max-width:90vw;box-shadow:0 8px 40px rgba(0,0,0,0.08);display:flex;flex-direction:column;gap:16px}
+.login-logo{font-size:22px;font-weight:700;color:#DDB200;text-align:center;letter-spacing:0.02em}
+.login-sub{font-size:12px;color:#aaa;text-align:center;margin-top:-8px}
+.login-box input{font-size:13px;padding:10px 12px;border:1px solid #ddd;border-radius:8px;width:100%;outline:none;letter-spacing:0.05em}
+.login-box input:focus{border-color:#DDB200}
+.login-btn{padding:10px;font-size:13px;font-weight:600;border-radius:8px;border:none;background:#DDB200;color:#fff;cursor:pointer;width:100%;transition:background 0.15s}
+.login-btn:hover{background:#C9A800}
+.login-err{font-size:11px;color:#D85A30;text-align:center;min-height:16px}
 </style>
 </head>
 <body>
@@ -319,6 +329,15 @@ tr:hover td{background:#FAFAF3}
         </tr></thead><tbody id="woche-tbody"></tbody></table>
       </div>
     </div>
+  </div>
+</div>
+<div id="login-screen" class="login-screen" style="display:none">
+  <div class="login-box">
+    <div class="login-logo">prosa Sitzplan</div>
+    <div class="login-sub">Bitte Passwort eingeben</div>
+    <input type="password" id="login-pw" placeholder="Passwort" onkeydown="if(event.key==='Enter')doLogin()">
+    <div class="login-err" id="login-err"></div>
+    <button class="login-btn" onclick="doLogin()">Anmelden</button>
   </div>
 </div>
 <div id="modal-c"></div>
@@ -1279,11 +1298,46 @@ async function assignImacUser(imacId,maId,platz,callback){
 function renderAll(){renderSidebar();renderFloor();renderWhoPanel();renderLegend();renderMaTable();renderDevTable();renderProjTable();renderMainz();}
 function renderAll(){renderSidebar();renderFloor();renderWhoPanel();renderLegend();renderMaTable();renderDevTable();renderProjTable();renderMainz();renderWoche();}
 
-document.querySelectorAll('.tab-content').forEach(el=>el.style.display='none');
-document.getElementById('tab-sitzplan').style.display='flex';
-initDateDisplay();
-setDay(currentDay,null);
-loadAll();
+// ── LOGIN ────────────────────────────────────
+const LOGIN_KEY='prosa_sitzplan_auth';
+const LOGIN_PW='prosa2024'; // Passwort hier ändern
+
+function checkLogin(){
+  const auth=localStorage.getItem(LOGIN_KEY);
+  if(auth==='true'){
+    startApp();
+  } else {
+    document.getElementById('login-screen').style.display='flex';
+    document.querySelector('.app').style.display='none';
+    setTimeout(()=>document.getElementById('login-pw').focus(),100);
+  }
+}
+
+function doLogin(){
+  const pw=document.getElementById('login-pw').value;
+  const errEl=document.getElementById('login-err');
+  if(pw===LOGIN_PW){
+    localStorage.setItem(LOGIN_KEY,'true');
+    document.getElementById('login-screen').style.display='none';
+    document.querySelector('.app').style.display='flex';
+    startApp();
+  } else {
+    errEl.textContent='Falsches Passwort. Bitte erneut versuchen.';
+    document.getElementById('login-pw').value='';
+    document.getElementById('login-pw').focus();
+    setTimeout(()=>errEl.textContent='',3000);
+  }
+}
+
+function startApp(){
+  document.querySelectorAll('.tab-content').forEach(el=>el.style.display='none');
+  document.getElementById('tab-sitzplan').style.display='flex';
+  initDateDisplay();
+  setDay(currentDay,null);
+  loadAll();
+}
+
+checkLogin();
 </script>
 </body>
 </html>
