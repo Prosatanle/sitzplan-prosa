@@ -1489,11 +1489,15 @@ async function handleDropMainz(nr){
   if(dragDataMainz.type==='person'){
     const ma=mitarbeitende.find(m=>m.id===dragDataMainz.id);if(!ma)return;
     const belegt=getPersonAmPlatzMainz(nr);if(belegt&&belegt.id!==ma.id){showToast('Platz '+nr+' ist bereits belegt');return;}
-    await sb.from('buchungen_mainz').delete().eq('platz_str',String(nr)).eq('tag',currentDayMainz);
-    await sb.from('buchungen_mainz').insert({platz_str:String(nr),tag:currentDayMainz,mitarbeiter_id:ma.id,buchungsname:ma.name});
+    const {error:insErr}=await sb.from('buchungen_mainz').upsert({platz_str:String(nr),tag:currentDayMainz,mitarbeiter_id:ma.id,buchungsname:ma.name},{onConflict:'platz_str,tag'});
+    if(insErr){
+      // fallback: delete then insert
+      await sb.from('buchungen_mainz').delete().eq('platz_str',String(nr)).eq('tag',currentDayMainz);
+      await sb.from('buchungen_mainz').insert({platz_str:String(nr),tag:currentDayMainz,mitarbeiter_id:ma.id,buchungsname:ma.name});
+    }
     showToast(ma.name+' → Mainz Platz '+nr);
   } else {
-    await sb.from('geraete').update({platz_mainz:nr}).eq('id',dragDataMainz.id);
+    await sb.from('geraete').update({platz_mainz:String(nr)}).eq('id',dragDataMainz.id);
     showToast(dragDataMainz.id+' → Mainz Platz '+nr);
     await loadAll();
   }
@@ -1534,8 +1538,10 @@ async function autoAssignMainz(){
     }
   }
   if(inserts.length){
-    await sb.from('buchungen_mainz').delete().in('platz_str',inserts.map(i=>i.platz_str)).eq('tag',currentDayMainz);
-    await sb.from('buchungen_mainz').insert(inserts);
+    for(const ins of inserts){
+      await sb.from('buchungen_mainz').delete().eq('platz_str',ins.platz_str).eq('tag',currentDayMainz);
+      await sb.from('buchungen_mainz').insert(ins);
+    }
     showToast('Mainz Auto: '+inserts.map(i=>i.buchungsname).join(', '));
     await loadBuchungenMainz();renderFloorMainz();renderSidebarMainz();
   } else {
@@ -1572,9 +1578,10 @@ async function buchenMainz(nr){
   const selVal=document.getElementById('buch-sel-mainz').value;
   if(!name){showToast('Bitte Name eingeben',true);return;}
   await sb.from('buchungen_mainz').delete().eq('platz_str',String(nr)).eq('tag',currentDayMainz);
-  const d={platz_str:String(nr),tag:currentDayMainz,buchungsname:name};
+  const d={platz_str:String(nr),tag:currentDayMainz,buchungsname:name,platz:0};
   if(selVal)d.mitarbeiter_id=parseInt(selVal);
-  await sb.from('buchungen_mainz').insert(d);
+  const {error:bErr}=await sb.from('buchungen_mainz').insert(d);
+  if(bErr){showToast('Fehler: '+bErr.message,true);return;}
   closeModal();showToast(name+' → Mainz Platz '+nr);
   await loadBuchungenMainz();renderFloorMainz();renderSidebarMainz();
 }
