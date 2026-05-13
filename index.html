@@ -297,7 +297,7 @@ tr:hover td{background:#FAFAF3}
   <div id="tab-mitarbeitende" class="tab-content">
     <div class="list-pane">
       <div class="list-header"><span class="list-title">Mitarbeitende</span><button class="add-btn" onclick="openAddPerson()">+ Person hinzufügen</button></div>
-      <div class="tbl-wrap"><table><thead><tr><th>Name</th><th>Typ</th><th>Platz</th><th>Gerät</th><th>iMac-Logins</th><th>Tage DA</th><th>Mainz</th><th>Urlaub</th><th>Projekte</th><th>Einschränkung</th><th></th></tr></thead><tbody id="ma-tbody"></tbody></table></div>
+      <div class="tbl-wrap"><table><thead><tr><th>Name</th><th>Typ</th><th>Platz</th><th>Gerät</th><th>iMac-Logins</th><th>Tage DA</th><th>Mainz</th><th>Projekte</th><th>Urlaub</th><th>Einschränkung</th><th></th></tr></thead><tbody id="ma-tbody"></tbody></table></div>
     </div>
   </div>
   <div id="tab-geraete" class="tab-content">
@@ -1139,6 +1139,26 @@ function openEditGeraet(gid){
     +'<div><button class="mbtn grn" onclick="saveGeraet(window._editGeraetId)">Speichern</button><button class="mbtn" onclick="closeModal()">Abbrechen</button></div>');
 }
 
+
+async function saveGeraet(oldId){
+  const id=document.getElementById('g-id').value.trim();
+  if(!id){showToast('ID erforderlich',true);return;}
+  const pv=document.getElementById('g-platz').value.trim();
+  const pmEl=document.getElementById('g-platz-mainz');
+  const pmv=pmEl?pmEl.value.trim():null;
+  const data={
+    id,
+    typ:document.getElementById('g-typ').value,
+    art:document.getElementById('g-art').value,
+    platz:pv?parseInt(pv):null,
+    platz_mainz:pmv||null
+  };
+  let error;
+  if(oldId){({error}=await sb.from('geraete').update(data).eq('id',oldId));}
+  else{({error}=await sb.from('geraete').insert(data));}
+  if(error){showToast('Fehler: '+error.message,true);return;}
+  closeModal();showToast(id+(oldId?' aktualisiert':' hinzugefügt'));await loadAll();
+}
 async function deleteGeraet(id){if(!confirm('Wirklich löschen: '+id+'?'))return;await sb.from('geraete').delete().eq('id',id);showToast(id+' entfernt');await loadAll();}
 
 function colorPickerHTML(selected){
@@ -1370,9 +1390,9 @@ let buchungenMainz={Mo:{},Di:{},Mi:{},Do:{},Fr:{}};
 let dragDataMainz=null;
 
 function getPersonAmPlatzMainz(nr){
-  const fest=mitarbeitende.find(m=>m.platz_mainz===nr&&(m.mainz_tage||[]).includes(currentDayMainz));
+  const fest=mitarbeitende.find(m=>m.platz_mainz===String(nr)&&(m.mainz_tage||[]).includes(currentDayMainz));
   if(fest)return{...fest,quelle:'fest'};
-  return (buchungenMainz[currentDayMainz]||{})[nr]||null;
+  return (buchungenMainz[currentDayMainz]||{})[String(nr)]||null;
 }
 function getGeraetAmPlatzMainz(nr){return geraete.find(g=>g.platz_mainz===nr)||null;}
 
@@ -1393,7 +1413,7 @@ function renderSidebarMainz(){
   });
   const devEl=document.getElementById('sdev-mainz');if(!devEl)return;
   devEl.innerHTML='';
-  const mainzGeraete=[...geraete].filter(g=>g.platz_mainz).sort((a,b)=>a.id.localeCompare(b.id,'de'));
+  const mainzGeraete=[...geraete].sort((a,b)=>a.id.localeCompare(b.id,'de'));
   mainzGeraete.forEach(g=>{
     const card=document.createElement('div');card.className='sb-card';card.draggable=true;
     card.innerHTML='<div style="display:flex;align-items:center;gap:4px">'+devIcon(g.typ,10)+'<span class="sb-card-name">'+g.id+'</span></div><div class="sb-card-sub">'+g.typ+(g.platz_mainz?' · P'+g.platz_mainz:'')+'</div>';
@@ -1485,16 +1505,17 @@ async function loadBuchungenMainz(){
   try{
     const {data}=await sb.from('buchungen_mainz').select('*');
     (data||[]).forEach(b=>{
+      const key=b.platz_str||String(b.platz);
       const ma=mitarbeitende.find(m=>m.id===b.mitarbeiter_id);
-      if(ma)buchungenMainz[b.tag][b.platz_str||b.platz]={...ma,quelle:'gebucht'};
-      else if(b.buchungsname)buchungenMainz[b.tag][b.platz_str||b.platz]={name:b.buchungsname,quelle:'gebucht',projekte:[]};
+      if(ma)buchungenMainz[b.tag][key]={...ma,quelle:'gebucht'};
+      else if(b.buchungsname)buchungenMainz[b.tag][key]={name:b.buchungsname,quelle:'gebucht',projekte:[]};
     });
   }catch(e){console.log('buchungen_mainz not ready');}
 }
 
 async function autoAssignMainz(){
   const mainzPersonen=mitarbeitende.filter(m=>(m.mainz_tage||[]).includes(currentDayMainz));
-  const belegt=new Set(Object.keys(buchungenMainz[currentDayMainz]||{}).map(Number));
+  const belegt=new Set(Object.keys(buchungenMainz[currentDayMainz]||{}));
   const inserts=[];
   for(const ma of mainzPersonen){
     const schonGebucht=Object.values(buchungenMainz[currentDayMainz]||{}).find(b=>b.id===ma.id);
