@@ -1126,17 +1126,17 @@ async function savePerson(id){
 
 async function deletePerson(id){const m=mitarbeitende.find(m=>m.id===id);if(!confirm('Wirklich löschen: '+m.name+'?'))return;await sb.from('mitarbeitende').delete().eq('id',id);showToast(m.name+' entfernt');await loadAll();}
 
-function openAddGeraet(){showModal('<div class="modal-title">Gerät hinzufügen</div><div class="form-row"><label>Geräte-ID</label><input id="g-id" type="text" placeholder="iMac-08 oder Screen-03"></div><div class="form-row"><label>Typ</label><select id="g-typ"><option value="iMac">iMac</option><option value="MacBook">MacBook</option><option value="Bildschirm">Bildschirm</option></select></div><div class="form-row"><label>Nutzungsart</label><select id="g-art"><option value="fest">Fest</option><option value="geteilt">Geteilt</option><option value="mobil">Mobil</option></select></div><div class="form-row"><label>Platz (optional)</label><input id="g-platz" type="text" placeholder="z.B. 11"></div><div><button class="mbtn grn" onclick="saveGeraet(null)">Hinzufügen</button><button class="mbtn" onclick="closeModal()">Abbrechen</button></div>');}
-function openEditGeraet(gid){const g=geraete.find(g=>g.id===gid);if(!g)return;showModal('<div class="modal-title">Bearbeiten – '+g.id+'</div><div class="form-row"><label>Geräte-ID</label><input id="g-id" type="text" value="'+g.id+'"></div><div class="form-row"><label>Typ</label><select id="g-typ"><option value="iMac" '+(g.typ==='iMac'?'selected':'')+'>iMac</option><option value="MacBook" '+(g.typ==='MacBook'?'selected':'')+'>MacBook</option><option value="Bildschirm" '+(g.typ==='Bildschirm'?'selected':'')+'>Bildschirm</option></select></div><div class="form-row"><label>Nutzungsart</label><select id="g-art"><option value="fest" '+(g.art==='fest'?'selected':'')+'>Fest</option><option value="geteilt" '+(g.art==='geteilt'?'selected':'')+'>Geteilt</option><option value="mobil" '+(g.art==='mobil'?'selected':'')+'>Mobil</option></select></div><div class="form-row"><label>Platz</label><input id="g-platz" type="text" value="'+(g.platz||'')+'"></div><div><button class="mbtn grn" onclick="saveGeraet(\''+gid+'\')">Speichern</button><button class="mbtn" onclick="closeModal()">Abbrechen</button></div>');}
-
-async function saveGeraet(oldId){
-  const id=document.getElementById('g-id').value.trim();if(!id){showToast('ID erforderlich',true);return;}
-  const pv=document.getElementById('g-platz').value.trim();
-  const data={id,typ:document.getElementById('g-typ').value,art:document.getElementById('g-art').value,platz:pv?parseInt(pv):null};
-  let error;
-  if(oldId){({error}=await sb.from('geraete').update(data).eq('id',oldId));}else{({error}=await sb.from('geraete').insert(data));}
-  if(error){showToast('Fehler: '+error.message,true);return;}
-  closeModal();showToast(id+(oldId?' aktualisiert':' hinzugefügt'));await loadAll();
+function openAddGeraet(){showModal('<div class="modal-title">Gerät hinzufügen</div><div class="form-row"><label>Geräte-ID</label><input id="g-id" type="text" placeholder="iMac-08 oder Screen-03"></div><div class="form-row"><label>Typ</label><select id="g-typ"><option value="iMac">iMac</option><option value="MacBook">MacBook</option><option value="Bildschirm">Bildschirm</option></select></div><div class="form-row"><label>Nutzungsart</label><select id="g-art"><option value="fest">Fest</option><option value="geteilt">Geteilt</option><option value="mobil">Mobil</option></select></div><div class="form-row"><label>Platz Darmstadt (optional)</label><input id="g-platz" type="text" placeholder="z.B. 11"></div><div class="form-row"><label>Platz Mainz (optional)</label><input id="g-platz-mainz" type="text" placeholder="z.B. MZ-1"></div><div><button class="mbtn grn" onclick="saveGeraet(null)">Hinzufügen</button><button class="mbtn" onclick="closeModal()">Abbrechen</button></div>');}
+function openEditGeraet(gid){
+  const g=geraete.find(g=>g.id===gid);if(!g)return;
+  window._editGeraetId=gid;
+  showModal('<div class="modal-title">Bearbeiten – '+g.id+'</div>'
+    +'<div class="form-row"><label>Geräte-ID</label><input id="g-id" type="text" value="'+g.id+'"></div>'
+    +'<div class="form-row"><label>Typ</label><select id="g-typ"><option value="iMac" '+(g.typ==='iMac'?'selected':'')+'>iMac</option><option value="MacBook" '+(g.typ==='MacBook'?'selected':'')+'>MacBook</option><option value="Bildschirm" '+(g.typ==='Bildschirm'?'selected':'')+'>Bildschirm</option></select></div>'
+    +'<div class="form-row"><label>Nutzungsart</label><select id="g-art"><option value="fest" '+(g.art==='fest'?'selected':'')+'>Fest</option><option value="geteilt" '+(g.art==='geteilt'?'selected':'')+'>Geteilt</option><option value="mobil" '+(g.art==='mobil'?'selected':'')+'>Mobil</option></select></div>'
+    +'<div class="form-row"><label>Platz Darmstadt</label><input id="g-platz" type="text" value="'+(g.platz||'')+'"></div>'
+    +'<div class="form-row"><label>Platz Mainz</label><input id="g-platz-mainz" type="text" value="'+(g.platz_mainz||'')+'"></div>'
+    +'<div><button class="mbtn grn" onclick="saveGeraet(window._editGeraetId)">Speichern</button><button class="mbtn" onclick="closeModal()">Abbrechen</button></div>');
 }
 
 async function deleteGeraet(id){if(!confirm('Wirklich löschen: '+id+'?'))return;await sb.from('geraete').delete().eq('id',id);showToast(id+' entfernt');await loadAll();}
@@ -1359,9 +1359,9 @@ async function assignImacUser(imacId,maId,platz,callback){
 
 // ── MAINZ SITZPLAN ───────────────────────────
 const GRUPPEN_MAINZ=[
-  {label:'Tischgruppe 1',plaetze:[[1],[2]],bereich:'mainz'},
-  {label:'Tischgruppe 2',plaetze:[[3],[4]],bereich:'mainz'},
-  {label:'Tischgruppe 3',plaetze:[[5]],bereich:'mainz'},
+  {label:'Tischgruppe 1',plaetze:[['MZ-1'],['MZ-2']],bereich:'mainz'},
+  {label:'Tischgruppe 2',plaetze:[['MZ-3'],['MZ-4']],bereich:'mainz'},
+  {label:'Tischgruppe 3',plaetze:[['MZ-5']],bereich:'mainz'},
 ];
 
 let currentDayMainz=getToday();
@@ -1370,7 +1370,7 @@ let buchungenMainz={Mo:{},Di:{},Mi:{},Do:{},Fr:{}};
 let dragDataMainz=null;
 
 function getPersonAmPlatzMainz(nr){
-  const fest=mitarbeitende.find(m=>m.platz_mainz===nr&&m.typ_mainz==='fest'&&(m.tage||[]).includes(currentDayMainz));
+  const fest=mitarbeitende.find(m=>m.platz_mainz===nr&&(m.mainz_tage||[]).includes(currentDayMainz));
   if(fest)return{...fest,quelle:'fest'};
   return (buchungenMainz[currentDayMainz]||{})[nr]||null;
 }
@@ -1462,15 +1462,15 @@ function setupDropMainz(el,nr){
 async function handleDropMainz(nr){
   if(!dragDataMainz)return;
   if(dragDataMainz.type==='named'){
-    await sb.from('buchungen_mainz').delete().eq('platz',dragDataMainz.platz).eq('tag',currentDayMainz);
-    await sb.from('buchungen_mainz').insert({platz:nr,tag:currentDayMainz,buchungsname:dragDataMainz.name});
+    await sb.from('buchungen_mainz').delete().eq('platz_str',dragDataMainz.platz).eq('tag',currentDayMainz);
+    await sb.from('buchungen_mainz').insert({platz_str:String(nr),tag:currentDayMainz,buchungsname:dragDataMainz.name});
     showToast(dragDataMainz.name+' → Mainz Platz '+nr);dragDataMainz=null;await loadBuchungenMainz();renderFloorMainz();renderSidebarMainz();return;
   }
   if(dragDataMainz.type==='person'){
     const ma=mitarbeitende.find(m=>m.id===dragDataMainz.id);if(!ma)return;
     const belegt=getPersonAmPlatzMainz(nr);if(belegt&&belegt.id!==ma.id){showToast('Platz '+nr+' ist bereits belegt');return;}
-    await sb.from('buchungen_mainz').delete().eq('platz',nr).eq('tag',currentDayMainz);
-    await sb.from('buchungen_mainz').insert({platz:nr,tag:currentDayMainz,mitarbeiter_id:ma.id,buchungsname:ma.name});
+    await sb.from('buchungen_mainz').delete().eq('platz_str',String(nr)).eq('tag',currentDayMainz);
+    await sb.from('buchungen_mainz').insert({platz_str:String(nr),tag:currentDayMainz,mitarbeiter_id:ma.id,buchungsname:ma.name});
     showToast(ma.name+' → Mainz Platz '+nr);
   } else {
     await sb.from('geraete').update({platz_mainz:nr}).eq('id',dragDataMainz.id);
@@ -1486,8 +1486,8 @@ async function loadBuchungenMainz(){
     const {data}=await sb.from('buchungen_mainz').select('*');
     (data||[]).forEach(b=>{
       const ma=mitarbeitende.find(m=>m.id===b.mitarbeiter_id);
-      if(ma)buchungenMainz[b.tag][b.platz]={...ma,quelle:'gebucht'};
-      else if(b.buchungsname)buchungenMainz[b.tag][b.platz]={name:b.buchungsname,quelle:'gebucht',projekte:[]};
+      if(ma)buchungenMainz[b.tag][b.platz_str||b.platz]={...ma,quelle:'gebucht'};
+      else if(b.buchungsname)buchungenMainz[b.tag][b.platz_str||b.platz]={name:b.buchungsname,quelle:'gebucht',projekte:[]};
     });
   }catch(e){console.log('buchungen_mainz not ready');}
 }
@@ -1501,19 +1501,19 @@ async function autoAssignMainz(){
     if(schonGebucht)continue;
     const gObj=geraete.find(g=>g.id===ma.geraet&&g.platz_mainz);
     if(gObj&&!belegt.has(gObj.platz_mainz)){
-      inserts.push({platz:gObj.platz_mainz,tag:currentDayMainz,mitarbeiter_id:ma.id,buchungsname:ma.name});
+      inserts.push({platz_str:String(gObj.platz_mainz),tag:currentDayMainz,mitarbeiter_id:ma.id,buchungsname:ma.name});
       belegt.add(gObj.platz_mainz);
     } else {
       // Find free screen platz
       const freieScreens=geraete.filter(g=>g.typ==='Bildschirm'&&g.platz_mainz&&!belegt.has(g.platz_mainz));
       if(freieScreens.length){
-        inserts.push({platz:freieScreens[0].platz_mainz,tag:currentDayMainz,mitarbeiter_id:ma.id,buchungsname:ma.name});
+        inserts.push({platz_str:String(freieScreens[0].platz_mainz),tag:currentDayMainz,mitarbeiter_id:ma.id,buchungsname:ma.name});
         belegt.add(freieScreens[0].platz_mainz);
       }
     }
   }
   if(inserts.length){
-    await sb.from('buchungen_mainz').delete().in('platz',inserts.map(i=>i.platz)).eq('tag',currentDayMainz);
+    await sb.from('buchungen_mainz').delete().in('platz_str',inserts.map(i=>i.platz_str)).eq('tag',currentDayMainz);
     await sb.from('buchungen_mainz').insert(inserts);
     showToast('Mainz Auto: '+inserts.map(i=>i.buchungsname).join(', '));
     await loadBuchungenMainz();renderFloorMainz();renderSidebarMainz();
@@ -1550,8 +1550,8 @@ async function buchenMainz(nr){
   const name=document.getElementById('buch-name-mainz').value.trim();
   const selVal=document.getElementById('buch-sel-mainz').value;
   if(!name){showToast('Bitte Name eingeben',true);return;}
-  await sb.from('buchungen_mainz').delete().eq('platz',nr).eq('tag',currentDayMainz);
-  const d={platz:nr,tag:currentDayMainz,buchungsname:name};
+  await sb.from('buchungen_mainz').delete().eq('platz_str',String(nr)).eq('tag',currentDayMainz);
+  const d={platz_str:String(nr),tag:currentDayMainz,buchungsname:name};
   if(selVal)d.mitarbeiter_id=parseInt(selVal);
   await sb.from('buchungen_mainz').insert(d);
   closeModal();showToast(name+' → Mainz Platz '+nr);
@@ -1559,7 +1559,7 @@ async function buchenMainz(nr){
 }
 
 async function entfernenMainz(nr){
-  await sb.from('buchungen_mainz').delete().eq('platz',nr).eq('tag',currentDayMainz);
+  await sb.from('buchungen_mainz').delete().eq('platz_str',String(nr)).eq('tag',currentDayMainz);
   closeModal();await loadBuchungenMainz();renderFloorMainz();renderSidebarMainz();
 }
 
