@@ -297,7 +297,7 @@ tr:hover td{background:#FAFAF3}
   <div id="tab-mitarbeitende" class="tab-content">
     <div class="list-pane">
       <div class="list-header"><span class="list-title">Mitarbeitende</span><button class="add-btn" onclick="openAddPerson()">+ Person hinzufügen</button></div>
-      <div class="tbl-wrap"><table><thead><tr><th>Name</th><th>Typ</th><th>Platz</th><th>Gerät</th><th>iMac-Logins</th><th>Tage DA</th><th>Mainz</th><th>Projekte</th><th>Urlaub</th><th>Einschränkung</th><th></th></tr></thead><tbody id="ma-tbody"></tbody></table></div>
+      <div class="tbl-wrap"><table><thead><tr><th>Name</th><th>Typ</th><th>Platz</th><th>Gerät</th><th>iMac-Logins</th><th>Tage DA</th><th>Bev. Plätze</th><th>Prio</th><th>Mainz</th><th>Projekte</th><th>Urlaub</th><th>Einschränkung</th><th></th></tr></thead><tbody id="ma-tbody"></tbody></table></div>
     </div>
   </div>
   <div id="tab-geraete" class="tab-content">
@@ -620,6 +620,10 @@ function buildPlatz(nr){
   const gesperrt=sperren.has(nr);
   const person=gesperrt?null:getPersonAmPlatz(nr);
   const alleGeraeteAmPlatz=geraete.filter(g=>g.platz===nr);
+  const person0=getPersonAmPlatz(nr);
+  // Also include the person's own device if not already at this platz
+  const personGeraet=person0?geraete.find(g=>g.id===person0.geraet&&!g.platz):null;
+  if(personGeraet)alleGeraeteAmPlatz.push(personGeraet);
   const hauptGeraet=alleGeraeteAmPlatz.find(g=>g.typ==='iMac'||g.typ==='MacBook');
   const screenGeraet=alleGeraeteAmPlatz.find(g=>g.typ==='Bildschirm');
   const numEl=document.createElement('div');numEl.className='platz-num';numEl.textContent=nr;p.appendChild(numEl);
@@ -734,24 +738,18 @@ async function setPrioAndAssign(btn){
   if(window._resolvePrio)window._resolvePrio();
 }
 async function autoAssign(){
-  // Step 1: assign by geraet → platz (person has geraet, geraet has platz)
-  const geraetPersonen=mitarbeitende.filter(m=>m.geraet&&(m.tage||[]).includes(currentDay));
+  // Step 1: assign by geraet → platz (only for flex persons via buchungen)
+  const geraetPersonen=mitarbeitende.filter(m=>m.geraet&&m.typ==='flex'&&(m.tage||[]).includes(currentDay));
   for(const ma of geraetPersonen){
     const g=geraete.find(g=>g.id===ma.geraet&&g.platz);
     if(!g)continue;
     const schonDa=getPersonAmPlatz(g.platz);
     if(schonDa&&schonDa.id===ma.id)continue;
-    if(schonDa&&schonDa.id!==ma.id){
-      // Conflict - skip, handled by priority prompt
-      continue;
-    }
-    if(ma.typ==='fest'){
-      await sb.from('mitarbeitende').update({platz:g.platz}).eq('id',ma.id);
-      mitarbeitende=mitarbeitende.map(m=>m.id===ma.id?{...m,platz:g.platz}:m);
-    } else {
-      await sb.from('buchungen').delete().eq('platz',g.platz).eq('tag',currentDay);
-      await sb.from('buchungen').insert({platz:g.platz,tag:currentDay,mitarbeiter_id:ma.id,buchungsname:ma.name});
-    }
+    if(schonDa&&schonDa.id!==ma.id)continue; // skip conflicts
+    const schonGebucht=Object.values(buchungen[currentDay]||{}).find(b=>b.id===ma.id);
+    if(schonGebucht)continue;
+    await sb.from('buchungen').delete().eq('platz',g.platz).eq('tag',currentDay);
+    await sb.from('buchungen').insert({platz:g.platz,tag:currentDay,mitarbeiter_id:ma.id,buchungsname:ma.name});
   }
   await loadAll();
 
@@ -801,22 +799,53 @@ async function autoAssign(){
     }
   }
 
-  // Step 3: assign flex personen
+  // Step 3: assign flex personen with bevorzugte_plaetze + priority
   const flex=mitarbeitende.filter(m=>m.typ==='flex'&&(m.tage||[]).includes(currentDay)&&!Object.values(buchungen[currentDay]||{}).find(b=>b.id===m.id));
   const belegt=new Set();
   mitarbeitende.filter(m=>m.platz&&m.typ==='fest'&&(m.tage||[]).includes(currentDay)).forEach(m=>belegt.add(m.platz));
   Object.keys(buchungen[currentDay]||{}).forEach(k=>belegt.add(parseInt(k)));
-  const freie=[];for(let i=1;i<=24;i++){if(!sperren.has(i)&&!belegt.has(i)){const g=geraete.filter(gg=>gg.platz===i);freie.push({nr:i,geraete:g,tgIdx:getTGIdx(i)});}}
-  const sorted=[...flex].sort((a,b)=>(b.tage||[]).length-(a.tage||[]).length);
-  function getTeamTG(ma){const koll=mitarbeitende.filter(m=>m.id!==ma.id&&sharedProjects(ma,m).length>0&&(m.tage||[]).includes(currentDay)&&m.platz);if(!koll.length)return null;const cnt={};koll.forEach(k=>{const tg=getTGIdx(k.platz);cnt[tg]=(cnt[tg]||0)+1;});return parseInt(Object.entries(cnt).sort((a,b)=>b[1]-a[1])[0][0]);}
+  const sorted=[...flex].sort((a,b)=>{
+    const pa=a.prioritaet||99;const pb=b.prioritaet||99;
+    if(pa!==pb)return pa-pb;
+    return (b.tage||[]).length-(a.tage||[]).length;
+  });
   const inserts=[];const neu=[];const vergebene=new Set();
+  function getTeamTGFlex(ma){
+    const koll=mitarbeitende.filter(m=>m.id!==ma.id&&sharedProjects(ma,m).length>0&&(m.tage||[]).includes(currentDay)&&m.platz);
+    if(!koll.length)return null;
+    const cnt={};koll.forEach(k=>{const tg=getTGIdx(k.platz);cnt[tg]=(cnt[tg]||0)+1;});
+    return parseInt(Object.entries(cnt).sort((a,b)=>b[1]-a[1])[0][0]);
+  }
   sorted.forEach(ma=>{
-    const maIsMac=isMacBookUser(ma);const teamTG=getTeamTG(ma);
-    let kandidaten=freie.filter(f=>!vergebene.has(f.nr)&&(maIsMac?f.geraete.some(g=>g.typ==='Bildschirm'):true));
-    if(teamTG!==null&&teamTG!==undefined){kandidaten=kandidaten.sort((a,b)=>Math.abs(a.tgIdx-teamTG)-Math.abs(b.tgIdx-teamTG));}
-    if(!kandidaten.length)return;
-    const zi=kandidaten[0].nr;vergebene.add(zi);
-    inserts.push({platz:zi,tag:currentDay,mitarbeiter_id:ma.id,buchungsname:ma.name});neu.push(ma.name+'→'+zi);
+    const maIsMac=isMacBookUser(ma);
+    const bevorzugte=(ma.bevorzugte_plaetze||[]).filter(p=>!isNaN(p)&&p>0);
+    let ziPlatz=null;
+    for(const bp of bevorzugte){
+      if(!belegt.has(bp)&&!vergebene.has(bp)&&!sperren.has(bp)){
+        const gs=geraete.filter(gg=>gg.platz===bp);
+        if(maIsMac&&!gs.some(gg=>gg.typ==='Bildschirm'))continue;
+        ziPlatz=bp;break;
+      }
+    }
+    if(!ziPlatz){
+      const freie=[];
+      for(let i=1;i<=24;i++){
+        if(!sperren.has(i)&&!belegt.has(i)&&!vergebene.has(i)){
+          freie.push({nr:i,geraete:geraete.filter(gg=>gg.platz===i),tgIdx:getTGIdx(i)});
+        }
+      }
+      const teamTG=getTeamTGFlex(ma);
+      let kandidaten=freie.filter(f=>maIsMac?f.geraete.some(g=>g.typ==='Bildschirm'):true);
+      if(teamTG!==null&&teamTG!==undefined){
+        kandidaten=kandidaten.sort((a,b)=>Math.abs(a.tgIdx-teamTG)-Math.abs(b.tgIdx-teamTG));
+      }
+      if(kandidaten.length)ziPlatz=kandidaten[0].nr;
+    }
+    if(ziPlatz){
+      vergebene.add(ziPlatz);belegt.add(ziPlatz);
+      inserts.push({platz:ziPlatz,tag:currentDay,mitarbeiter_id:ma.id,buchungsname:ma.name});
+      neu.push(ma.name+'→'+ziPlatz);
+    }
   });
   if(inserts.length){
     await sb.from('buchungen').delete().in('platz',inserts.map(i=>i.platz)).eq('tag',currentDay);
@@ -841,7 +870,7 @@ function renderMaTable(){
   if(!tb)return;
   tb.innerHTML='';
   if(!mitarbeitende.length){
-    tb.innerHTML='<tr><td colspan="11" style="text-align:center;padding:20px;color:#aaa">Noch keine Mitarbeitenden</td></tr>';
+    tb.innerHTML='<tr><td colspan="13" style="text-align:center;padding:20px;color:#aaa">Noch keine Mitarbeitenden</td></tr>';
     return;
   }
   const sortedMa=[...mitarbeitende].sort(function(a,b){return a.name.localeCompare(b.name,'de');});
@@ -869,6 +898,10 @@ function renderMaTable(){
     td5.textContent=(m.imac_logins&&m.imac_logins.length?m.imac_logins.join(', '):'–');tr.appendChild(td5);
     // Tage DA
     const td6=document.createElement('td');td6.textContent=(m.tage||[]).join(', ')||'–';tr.appendChild(td6);
+    const tdBev=document.createElement('td');tdBev.style.cssText='font-size:10px;color:#888';
+    tdBev.textContent=(m.bevorzugte_plaetze&&m.bevorzugte_plaetze.length?m.bevorzugte_plaetze.join(', '):'–');tr.appendChild(tdBev);
+    const tdPrio=document.createElement('td');tdPrio.style.cssText='font-size:10px;color:#888;text-align:center';
+    tdPrio.textContent=m.prioritaet||'–';tr.appendChild(tdPrio);
     // Mainz
     const td7=document.createElement('td');td7.style.cssText='font-size:10px;color:#7A6300';
     td7.textContent=(m.mainz_tage&&m.mainz_tage.length?m.mainz_tage.join(', '):'–');tr.appendChild(td7);
@@ -1055,7 +1088,10 @@ async function sperrenPlatz(nr){
 
 function personForm(m){
   return '<div class="form-row"><label>Name</label><input id="f-name" type="text" value="'+(m?m.name:'')+'" placeholder="Max M."></div>'
-    +'<div class="form-row"><label>Typ</label><select id="f-typ"><option value="fest" '+(m&&m.typ==='fest'?'selected':'')+'>Fester Platz</option><option value="flex" '+(m&&m.typ==='flex'?'selected':'')+'>Flex</option></select></div>'
+    +'<div class="form-row"><label>Typ</label><select id="f-typ" onchange="togglePlatzField(this)"><option value="fest" '+(m&&m.typ==='fest'?'selected':'')+'>Fester Platz</option><option value="flex" '+(m&&m.typ==='flex'?'selected':'')+'>Flex</option></select></div>'
+    +'<div class="form-row" id="platz-field-row" style="'+(m&&m.typ==='flex'?'display:none':'')+'"><label>Fester Platz (Nummer)</label><input id="f-platz" type="text" value="'+(m&&m.platz?m.platz:'')+'"></div>'
+    +'<div class="form-row" id="flex-plaetze-row" style="'+(m&&m.typ==='fest'?'display:none':'')+'"><label>Bevorzugte Plätze (kommagetrennt, z.B. 3,7,11)</label><input id="f-bev-plaetze" type="text" value="'+((m&&m.bevorzugte_plaetze||[]).join(', '))+'"></div>'
+    +'<div class="form-row" id="flex-prio-row" style="'+(m&&m.typ==='fest'?'display:none':'')+'"><label>Priorität (1=höchste, manuell überschreiben)</label><input id="f-prio" type="number" min="1" max="99" value="'+(m&&m.prioritaet||'')+'"></div>'
     +'<div class="form-row"><label>Eigenes Gerät (ID)</label><input id="f-geraet" type="text" value="'+(m?m.geraet||'':'')+'" placeholder="z.B. MB-05 oder iMac-07"></div>'
     +'<div class="form-row"><label>iMac-Logins</label>'+imacCheckboxes(m?m.imac_logins||[]:[])+' </div>'
     +'<div class="form-row"><label>Projekte</label>'+projCheckboxes(m?m.projekte||[]:[])+' </div>'
@@ -1066,6 +1102,14 @@ function personForm(m){
     ;
 }
 
+function togglePlatzField(sel){
+  const row=document.getElementById('platz-field-row');
+  const flexRow=document.getElementById('flex-plaetze-row');
+  const flexPrioRow=document.getElementById('flex-prio-row');
+  if(row)row.style.display=sel.value==='flex'?'none':'';
+  if(flexRow)flexRow.style.display=sel.value==='fest'?'none':'';
+  if(flexPrioRow)flexPrioRow.style.display=sel.value==='fest'?'none':'';
+}
 function addUrlaubEintrag(){
   const von=document.getElementById('urlaub-von').value;
   const bis=document.getElementById('urlaub-bis').value;
@@ -1112,7 +1156,15 @@ async function savePerson(id){
   const name=document.getElementById('f-name').value.trim();if(!name){showToast('Name erforderlich',true);return;}
   const tage=Array.from(document.querySelectorAll('.day-cb:checked')).map(i=>i.value);
   const mainzTage=Array.from(document.querySelectorAll('.mainz-cb:checked')).map(i=>i.value);
-  const data={name,typ:document.getElementById('f-typ').value,geraet:document.getElementById('f-geraet').value||null,imac_logins:getCheckedImacs(),projekte:getCheckedProjekte(),tage,mainz_tage:mainzTage,einschraenkung:document.getElementById('f-einschr').value,urlaub:window._urlaubList||[]};
+  const platzEl=document.getElementById('f-platz');
+  const platzVal=platzEl?platzEl.value.trim():null;
+  const typVal=document.getElementById('f-typ').value;
+  const bevEl=document.getElementById('f-bev-plaetze');
+  const bevRaw=bevEl?bevEl.value.trim():'';
+  const bevorzugte_plaetze=bevRaw?bevRaw.split(',').map(s=>parseInt(s.trim())).filter(n=>!isNaN(n)):[];
+  const prioEl=document.getElementById('f-prio');
+  const prioritaet=prioEl&&prioEl.value?parseInt(prioEl.value):null;
+  const data={name,typ:typVal,platz:platzVal&&typVal==='fest'?parseInt(platzVal)||null:null,bevorzugte_plaetze,prioritaet,geraet:document.getElementById('f-geraet').value||null,imac_logins:getCheckedImacs(),projekte:getCheckedProjekte(),tage,mainz_tage:mainzTage,einschraenkung:document.getElementById('f-einschr').value,urlaub:window._urlaubList||[]};
   let error;
   if(id){({error}=await sb.from('mitarbeitende').update(data).eq('id',id));}
   else{({error}=await sb.from('mitarbeitende').insert({...data,platz:null}));}
